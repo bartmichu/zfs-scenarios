@@ -207,7 +207,7 @@ If source pool is encrypted, the server must not require access to the decrypted
       syncoid --sendoptions=w --no-privilege-elevation --recursive --no-sync-snap --no-rollback --create-bookmark --sshkey ~/.ssh/replicaserver1 homepool zfs-push-receiver@replicaserver1:backuppool/replicated/workstation1/raw/homepool
       ```
 
-   - For server-side encryption: recursive replication of all already existing snapshots, using `raw` mode and `bookmark`, without using `hold`:
+   - For server-side encryption: recursive replication of all already existing snapshots, using `bookmark`, without using `hold`:
 
       ```shell
       syncoid --no-privilege-elevation --recursive --no-sync-snap --no-rollback --create-bookmark --sshkey ~/.ssh/replicaserver1 homepool zfs-push-receiver@replicaserver1:backuppool/replicated/workstation1/raw/homepool
