@@ -1,6 +1,6 @@
 # ZFS Replication - SSH Push Replication with Syncoid
 
-**`Workstation1` contains a ZFS pool named `homepool` that needs to be backed up off-site to `replicaserver1`.**
+**Workstation contains a ZFS pool that needs to be backed up off-site to replication server.**
 
 The backup should run in push mode and use minimal privileges on both sides.
 
@@ -8,7 +8,7 @@ The backup server should maintain its own independent retention policy.
 
 If source pool is encrypted, the server must not require access to the decrypted data or the workstation’s encryption keys. If it is not encrypted, server-side encryption may be used instead.
 
-## 1. Create a dedicated user account on the system with the target pool (all commands executed as `admin@replicaserver1`)
+## 1. Create a dedicated user account on the system with the target pool (all commands are executed as `admin@replicaserver1`)
 
 1. Create a dedicated user account:
 
@@ -16,7 +16,7 @@ If source pool is encrypted, the server must not require access to the decrypted
    sudo adduser zfs-push-receiver
    ```
 
-## 2. Prepare the system with the source data pool (all commands executed as `admin@workstation1`)
+## 2. Prepare the system with the source data pool (all commands are executed as `admin@workstation1`)
 
 1. Install required packages:
 
@@ -81,7 +81,7 @@ If source pool is encrypted, the server must not require access to the decrypted
    sudo systemctl restart sanoid.service
    ```
 
-## 3. Prepare the system with the target data pool (all commands executed as `admin@replicaserver1`)
+## 3. Prepare the system with the target data pool (all commands are executed as `admin@replicaserver1`)
 
 1. Install required packages:
 
@@ -127,7 +127,7 @@ If source pool is encrypted, the server must not require access to the decrypted
 
 4. Create the dataset structure.
 
-   Create parent dataset, unique for each client:
+   Create the parent dataset, unique for each client:
 
    ```shell
    sudo zfs create -p -o mountpoint=none -o compression=on backuppool/replicated/workstation1
@@ -199,7 +199,7 @@ If source pool is encrypted, the server must not require access to the decrypted
    sudo zfs load-key backuppool/replicated/workstation1/encrypted
    ```
 
-2. Initiate replication, preferably using `tmux` (all commands executed as `zfs-push-sender@workstation1`).
+2. Initiate replication, preferably using `tmux` (all commands are executed as `zfs-push-sender@workstation1`).
 
    - For encrypted `homepool`: recursive replication of all already existing snapshots, using `raw` mode and `bookmark`, without using `hold`:
 
