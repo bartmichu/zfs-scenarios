@@ -225,4 +225,4 @@ If source pool is encrypted, the server must not require access to the decrypted
 
 - Please visit the [Sanoid wiki](https://github.com/jimsalterjrs/sanoid/wiki) for explanations of all Syncoid options and Sanoid configuration.
 
-- This scenarion was tested on Ubuntu Server 24.04.
+- This scenario was tested on Ubuntu Server 24.04.
