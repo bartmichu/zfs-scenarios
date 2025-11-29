@@ -8,39 +8,31 @@ The backup server should maintain its own independent retention policy.
 
 If source pool is encrypted, the server must not require access to the decrypted data or the workstation’s encryption keys. If it is not encrypted, server-side encryption may be used instead.
 
-## 1. Create a dedicated user account on the system with the target pool (replicaserver1)
+## 1. Create a dedicated user account on the system with the target pool (all commands executed as `admin@replicaserver1`)
 
 1. Create a dedicated user account:
 
    ```shell
-   # admin@replicaserver1
-
    sudo adduser zfs-push-receiver
    ```
 
-## 2. Prepare the system with the source data pool (workstation1)
+## 2. Prepare the system with the source data pool (all commands executed as `admin@workstation1`)
 
 1. Install required packages:
 
    ```shell
-   # admin@workstation1
-
    sudo apt install zfsutils-linux sanoid mbuffer
    ```
 
 2. Create a dedicated user account:
 
    ```shell
-   # admin@workstation1
-
    sudo adduser zfs-push-sender
    ```
 
 3. Create a key pair for the dedicated user and add the public key to the system with the target pool:
 
    ```shell
-   # admin@workstation1
-
    su - zfs-push-sender
    ssh-keygen -t ed25519 -f ~/.ssh/replicaserver1
    ssh-copy-id -i ~/.ssh/replicaserver1.pub zfs-push-receiver@replicaserver1
@@ -50,8 +42,6 @@ If source pool is encrypted, the server must not require access to the decrypted
 4. Grant minimal required permissions using ZFS permission delegation:
 
    ```shell
-   # admin@workstation1
-
    sudo zfs allow -u zfs-push-sender bookmark,hold,send,release homepool
    ```
 
@@ -60,8 +50,6 @@ If source pool is encrypted, the server must not require access to the decrypted
    Create the configuration file:
 
    ```shell
-   # admin@workstation1
-
    sudo nano /etc/sanoid/sanoid.conf
    ```
 
@@ -84,34 +72,26 @@ If source pool is encrypted, the server must not require access to the decrypted
    ```
 
    ```shell
-   # admin@workstation1
-
    sudo chmod 640 /etc/sanoid/sanoid.conf
    ```
 
    Reload Sanoid configuration:
 
    ```shell
-   # admin@workstation1
-
    sudo systemctl restart sanoid.service
    ```
 
-## 3. Prepare the system with the target data pool (replicaserver1)
+## 3. Prepare the system with the target data pool (all commands executed as `admin@replicaserver1`)
 
 1. Install required packages:
 
    ```shell
-   # admin@replicaserver1
-
    sudo apt install zfsutils-linux sanoid mbuffer
    ```
 
 2. Configure the SSH server:
 
    ```shell
-   # admin@replicaserver1
-
    sudo nano /etc/ssh/sshd_config.d/zfs-push-receiver.conf
    ```
 
@@ -130,24 +110,18 @@ If source pool is encrypted, the server must not require access to the decrypted
    ```
 
    ```shell
-   # admin@replicaserver1
-
    sudo chmod 640 /etc/ssh/sshd_config.d/zfs-push-receiver.conf
    ```
 
    Test and apply the SSH server configuration:
 
    ```shell
-   # admin@replicaserver1
-
    sudo sshd -t -f /etc/ssh/sshd_config.d/zfs-push-receiver.conf && sudo systemctl restart ssh.socket
    ```
 
 3. If necessary, create the target data pool:
 
    ```shell
-   # admin@replicaserver1
-
    sudo zpool create -O mountpoint=none -O compression=on backuppool /dev/disk/by-id/<disk-id>
    ```
 
@@ -156,32 +130,24 @@ If source pool is encrypted, the server must not require access to the decrypted
    Create parent dataset, unique for each client:
 
    ```shell
-   # admin@replicaserver1
-
    sudo zfs create -p -o mountpoint=none -o compression=on backuppool/replicated/workstation1
    ```
 
    Create encrypted dataset for replication without `raw` mode:
 
    ```shell
-   # admin@replicaserver1
-
    sudo zfs create -o encryption=on -o keyformat=passphrase backuppool/replicated/workstation1/encrypted
    ```
 
    Create unencrypted dataset for replication in `raw` mode:
 
    ```shell
-   # admin@replicaserver1
-
    sudo zfs create backuppool/replicated/workstation1/raw
    ```
 
 5. Grant required permissions using ZFS permission delegation:
 
    ```shell
-   # admin@replicaserver1
-
    sudo zfs allow -u zfs-push-receiver create,mount,receive,hold,release backuppool/replicated/workstation1/encrypted
    sudo zfs allow -u zfs-push-receiver create,mount,receive,hold,release backuppool/replicated/workstation1/raw
    ```
@@ -191,8 +157,6 @@ If source pool is encrypted, the server must not require access to the decrypted
    Create the configuration file:
 
    ```shell
-   # admin@replicaserver1
-
    sudo nano /etc/sanoid/sanoid.conf
    ```
 
@@ -215,16 +179,12 @@ If source pool is encrypted, the server must not require access to the decrypted
    ```
 
    ```shell
-   # admin@replicaserver1
-
    sudo chmod 640 /etc/sanoid/sanoid.conf
    ```
 
    Reload Sanoid configuration:
 
    ```shell
-   # admin@replicaserver1
-
    sudo systemctl restart sanoid.service
    ```
 
@@ -239,21 +199,17 @@ If source pool is encrypted, the server must not require access to the decrypted
    sudo zfs load-key backuppool/replicated/workstation1/encrypted
    ```
 
-2. Initiate replication (preferably using `tmux`).
+2. Initiate replication, preferably using `tmux` (all commands executed as `zfs-push-sender@workstation1`).
 
    - For encrypted `homepool`: recursive replication of all already existing snapshots, using `raw` mode and `bookmark`, without using `hold`:
 
       ```shell
-      # zfs-push-sender@workstation1
-
       syncoid --sendoptions=w --no-privilege-elevation --recursive --no-sync-snap --no-rollback --create-bookmark --sshkey ~/.ssh/replicaserver1 homepool zfs-push-receiver@replicaserver1:backuppool/replicated/workstation1/raw/homepool
       ```
 
    - For server-side encryption: recursive replication of all already existing snapshots, using `raw` mode and `bookmark`, without using `hold`:
 
       ```shell
-      # zfs-push-sender@workstation1
-
       syncoid --no-privilege-elevation --recursive --no-sync-snap --no-rollback --create-bookmark --sshkey ~/.ssh/replicaserver1 homepool zfs-push-receiver@replicaserver1:backuppool/replicated/workstation1/raw/homepool
       ```
 
