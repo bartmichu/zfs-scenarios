@@ -1,5 +1,11 @@
 # ZFS Scenarios
 
+- **[ZFS Dataset Delegation - LXD](./delegation-lxd)**
+
+  LXD container needs the ability to manage a ZFS dataset from LXD host, including creating child datasets, snapshots, and other related operations.
+
+  The container should not be able to access other datasets in the parent pool.
+
 - **[ZFS Replication - SSH Push Replication with Syncoid](./replication-ssh-push)**
 
   Workstation contains a ZFS pool that needs to be backed up off-site to replication server.
