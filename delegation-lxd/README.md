@@ -8,13 +8,13 @@ The container should not be able to access other datasets in the parent pool.
 
 1. If necessary, create the data pool:
 
-   ```shell
+   ```bash
    sudo zpool create -O mountpoint=none -O compression=on datapool /dev/disk/by-id/<disk-id>
    ```
 
 2. Create the parent dataset:
 
-   ```shell
+   ```bash
    sudo zfs create -p -o mountpoint=none -o compression=on datapool/delegated/lxdtank
    ```
 
@@ -22,37 +22,37 @@ The container should not be able to access other datasets in the parent pool.
 
 1. Create an LXD pool:
 
-   ```shell
+   ```bash
    sudo lxc storage create lxdtank zfs source=datapool/delegated/lxdtank
    ```
 
    Create LXD volumes:
 
-   ```shell
+   ```bash
    sudo lxc storage volume create lxdtank containertank
    ```
 
 2. Stop the container that the volume will be attached to:
 
-   ```shell
+   ```bash
    sudo lxc stop lxdcontainer
    ```
 
 3. Attach the volumes to the container:
 
-   ```shell
+   ```bash
    sudo lxc storage volume attach lxdtank containertank lxdcontainer disk-device-1 /srv/containertank
    ```
 
 4. Configure volume delegation:
 
-   ```shell
+   ```bash
    sudo lxc storage volume set lxdtank custom/containertank zfs.delegate=true
    ```
 
 5. Start the container to which the volume is attached:
 
-   ```shell
+   ```bash
    sudo lxc start lxdcontainer
    ```
 
@@ -60,13 +60,13 @@ The container should not be able to access other datasets in the parent pool.
 
 1. Install required packages:
 
-   ```shell
+   ```bash
    sudo apt install zfsutils-linux
    ```
 
 2. Verify that the delegation is configured correctly:
 
-   ```shell
+   ```bash
    zfs list
    ```
 

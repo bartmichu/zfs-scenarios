@@ -12,7 +12,7 @@ If source pool is encrypted, the server must not require access to the decrypted
 
 1. Create a dedicated user account:
 
-   ```shell
+   ```bash
    sudo adduser zfs-push-receiver
    ```
 
@@ -20,19 +20,19 @@ If source pool is encrypted, the server must not require access to the decrypted
 
 1. Install required packages:
 
-   ```shell
+   ```bash
    sudo apt install zfsutils-linux sanoid mbuffer
    ```
 
 2. Create a dedicated user account:
 
-   ```shell
+   ```bash
    sudo adduser zfs-push-sender
    ```
 
 3. Create a key pair for the dedicated user and add the public key to the system with the target pool:
 
-   ```shell
+   ```bash
    su - zfs-push-sender
    ssh-keygen -t ed25519 -f ~/.ssh/replicaserver1
    ssh-copy-id -i ~/.ssh/replicaserver1.pub zfs-push-receiver@replicaserver1
@@ -41,7 +41,7 @@ If source pool is encrypted, the server must not require access to the decrypted
 
 4. Grant minimal required permissions using ZFS permission delegation:
 
-   ```shell
+   ```bash
    sudo zfs allow -u zfs-push-sender bookmark,hold,send,release homepool
    ```
 
@@ -49,7 +49,7 @@ If source pool is encrypted, the server must not require access to the decrypted
 
    Create the configuration file:
 
-   ```shell
+   ```bash
    sudo nano /etc/sanoid/sanoid.conf
    ```
 
@@ -71,13 +71,13 @@ If source pool is encrypted, the server must not require access to the decrypted
      yearly = 0
    ```
 
-   ```shell
+   ```bash
    sudo chmod 640 /etc/sanoid/sanoid.conf
    ```
 
    Reload Sanoid configuration:
 
-   ```shell
+   ```bash
    sudo systemctl restart sanoid.service
    ```
 
@@ -85,13 +85,13 @@ If source pool is encrypted, the server must not require access to the decrypted
 
 1. Install required packages:
 
-   ```shell
+   ```bash
    sudo apt install zfsutils-linux sanoid mbuffer
    ```
 
 2. Configure the SSH server:
 
-   ```shell
+   ```bash
    sudo nano /etc/ssh/sshd_config.d/zfs-push-receiver.conf
    ```
 
@@ -109,19 +109,19 @@ If source pool is encrypted, the server must not require access to the decrypted
      Banner none
    ```
 
-   ```shell
+   ```bash
    sudo chmod 640 /etc/ssh/sshd_config.d/zfs-push-receiver.conf
    ```
 
    Test and apply the SSH server configuration:
 
-   ```shell
+   ```bash
    sudo sshd -t -f /etc/ssh/sshd_config.d/zfs-push-receiver.conf && sudo systemctl restart ssh.socket
    ```
 
 3. If necessary, create the target data pool:
 
-   ```shell
+   ```bash
    sudo zpool create -O mountpoint=none -O compression=on backuppool /dev/disk/by-id/<disk-id>
    ```
 
@@ -129,25 +129,25 @@ If source pool is encrypted, the server must not require access to the decrypted
 
    Create the parent dataset, unique for each client:
 
-   ```shell
+   ```bash
    sudo zfs create -p -o mountpoint=none -o compression=on backuppool/replicated/workstation1
    ```
 
    Create encrypted dataset for replication without `raw` mode:
 
-   ```shell
+   ```bash
    sudo zfs create -o encryption=on -o keyformat=passphrase backuppool/replicated/workstation1/encrypted
    ```
 
    Create unencrypted dataset for replication in `raw` mode:
 
-   ```shell
+   ```bash
    sudo zfs create backuppool/replicated/workstation1/raw
    ```
 
 5. Grant required permissions using ZFS permission delegation:
 
-   ```shell
+   ```bash
    sudo zfs allow -u zfs-push-receiver create,mount,receive,hold,release backuppool/replicated/workstation1/encrypted
    sudo zfs allow -u zfs-push-receiver create,mount,receive,hold,release backuppool/replicated/workstation1/raw
    ```
@@ -156,7 +156,7 @@ If source pool is encrypted, the server must not require access to the decrypted
 
    Create the configuration file:
 
-   ```shell
+   ```bash
    sudo nano /etc/sanoid/sanoid.conf
    ```
 
@@ -178,13 +178,13 @@ If source pool is encrypted, the server must not require access to the decrypted
      yearly = 0
    ```
 
-   ```shell
+   ```bash
    sudo chmod 640 /etc/sanoid/sanoid.conf
    ```
 
    Reload Sanoid configuration:
 
-   ```shell
+   ```bash
    sudo systemctl restart sanoid.service
    ```
 
@@ -192,7 +192,7 @@ If source pool is encrypted, the server must not require access to the decrypted
 
 1. If necessary, load the encryption key on the target server:
 
-   ```shell
+   ```bash
    # admin@replicaserver1
 
    zfs get keystatus -r backuppool/replicated | grep encrypted
@@ -203,13 +203,13 @@ If source pool is encrypted, the server must not require access to the decrypted
 
    - For encrypted `homepool`: recursive replication of all already existing snapshots, using `raw` mode and `bookmark`, without using `hold`:
 
-      ```shell
+      ```bash
       syncoid --sendoptions=w --no-privilege-elevation --recursive --no-sync-snap --no-rollback --create-bookmark --sshkey ~/.ssh/replicaserver1 homepool zfs-push-receiver@replicaserver1:backuppool/replicated/workstation1/raw/homepool
       ```
 
    - For server-side encryption: recursive replication of all already existing snapshots, using `bookmark`, without using `hold`:
 
-      ```shell
+      ```bash
       syncoid --no-privilege-elevation --recursive --no-sync-snap --no-rollback --create-bookmark --sshkey ~/.ssh/replicaserver1 homepool zfs-push-receiver@replicaserver1:backuppool/replicated/workstation1/raw/homepool
       ```
 
