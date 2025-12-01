@@ -26,7 +26,7 @@ The container should not be able to access other datasets in the parent pool.
    sudo lxc storage create lxdtank zfs source=datapool/delegated/lxdtank
    ```
 
-   Create LXD volumes:
+   Create LXD volume:
 
    ```bash
    sudo lxc storage volume create lxdtank containertank
@@ -38,7 +38,7 @@ The container should not be able to access other datasets in the parent pool.
    sudo lxc stop lxdcontainer
    ```
 
-3. Attach the volumes to the container:
+3. Attach the volume to the container:
 
    ```bash
    sudo lxc storage volume attach lxdtank containertank lxdcontainer disk-device-1 /srv/containertank

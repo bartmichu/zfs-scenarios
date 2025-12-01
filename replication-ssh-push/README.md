@@ -4,7 +4,7 @@
 
 The backup should run in push mode and use minimal privileges on both sides.
 
-The backup server should maintain its own independent retention policy.
+The replication server should maintain its own independent retention policy.
 
 If source pool is encrypted, the server must not require access to the decrypted data or the workstation’s encryption keys. If it is not encrypted, server-side encryption may be used instead.
 
@@ -188,7 +188,7 @@ If source pool is encrypted, the server must not require access to the decrypted
    sudo systemctl restart sanoid.service
    ```
 
-## 4. Perform replication
+## 4. Perform the replication
 
 1. If necessary, load the encryption key on the target server:
 
@@ -199,7 +199,7 @@ If source pool is encrypted, the server must not require access to the decrypted
    sudo zfs load-key backuppool/replicated/workstation1/encrypted
    ```
 
-2. Initiate replication, preferably using `tmux` (all commands are executed as `zfs-push-sender@workstation1`).
+2. Initiate replication, preferably using a terminal multiplexer like `tmux` (all commands are executed as `zfs-push-sender@workstation1`).
 
    - For encrypted `homepool`: recursive replication of all already existing snapshots, using `raw` mode and `bookmark`, without using `hold`:
 

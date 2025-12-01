@@ -30,18 +30,18 @@
    sudo zpool import -l backuppool
    ```
 
-2. Initiate replication, preferably using `tmux`.
-
-   Recursive replication of only the the newest existing snapshots (without replicating the intermediate snapshots). Using `bookmark`, without using `hold`:
-
-   ```bash
-   sudo syncoid --recursive --no-sync-snap --no-stream --create-bookmark datapool backuppool/replicated/hostname1/datapool
-   ```
+2. Initiate replication, preferably using a terminal multiplexer like `tmux`.
 
    Recursive replication using semi-ephemeral snapshots created by Syncoid at runtime. Using `hold`:
   
    ```bash
    sudo syncoid --recursive --no-stream --use-hold datapool backuppool/replicated/hostname1/datapool
+   ```
+
+   Recursive replication of only the the newest existing snapshots (without replicating the intermediate snapshots). Using `bookmark`, without using `hold`:
+
+   ```bash
+   sudo syncoid --recursive --no-sync-snap --no-stream --create-bookmark datapool backuppool/replicated/hostname1/datapool
    ```
 
 ## 4. Notes
