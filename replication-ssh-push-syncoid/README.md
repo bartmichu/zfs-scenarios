@@ -6,9 +6,9 @@ The backup should run in push mode and use minimal privileges on both sides.
 
 The replication server should maintain its own independent retention policy.
 
-If source pool is encrypted, the server must not require access to the decrypted data or the workstation’s encryption keys. If it is not encrypted, server-side encryption may be used instead.
+If source pool is encrypted, the replication server must not require access to the decrypted data or the workstation's encryption keys. If it is not encrypted, server-side encryption may be used instead.
 
-## 1. Create a dedicated user account on the system with the target pool (all commands are executed as `admin@replicaserver1`)
+## 1. Create a dedicated user account on the system with the target data pool (all commands are executed as `admin@replicaserver1`)
 
 1. Create a dedicated user account:
 
@@ -30,7 +30,7 @@ If source pool is encrypted, the server must not require access to the decrypted
    sudo adduser zfs-push-sender
    ```
 
-3. Create a key pair for the dedicated user and add the public key to the system with the target pool:
+3. Create a key pair for the dedicated user and add the public key to the system with the target data pool:
 
    ```bash
    su - zfs-push-sender
@@ -130,26 +130,26 @@ If source pool is encrypted, the server must not require access to the decrypted
    Create the parent dataset, unique for each client:
 
    ```bash
-   sudo zfs create -p -o mountpoint=none -o compression=on backuppool/replicated/workstation1
+   sudo zfs create -p -o mountpoint=none -o compression=on backuppool/replicated-push/workstation1
    ```
 
    Create encrypted dataset for replication without `raw` mode:
 
    ```bash
-   sudo zfs create -o encryption=on -o keyformat=passphrase backuppool/replicated/workstation1/encrypted
+   sudo zfs create -o encryption=on -o keyformat=passphrase backuppool/replicated-push/workstation1/encrypted
    ```
 
    Create unencrypted dataset for replication in `raw` mode:
 
    ```bash
-   sudo zfs create backuppool/replicated/workstation1/raw
+   sudo zfs create backuppool/replicated-push/workstation1/raw
    ```
 
 5. Grant required permissions using ZFS permission delegation:
 
    ```bash
-   sudo zfs allow -u zfs-push-receiver create,mount,receive,hold,release backuppool/replicated/workstation1/encrypted
-   sudo zfs allow -u zfs-push-receiver create,mount,receive,hold,release backuppool/replicated/workstation1/raw
+   sudo zfs allow -u zfs-push-receiver create,mount,receive,hold,release backuppool/replicated-push/workstation1/encrypted
+   sudo zfs allow -u zfs-push-receiver create,mount,receive,hold,release backuppool/replicated-push/workstation1/raw
    ```
 
 6. Configure Sanoid to delete old snapshots.
@@ -163,7 +163,7 @@ If source pool is encrypted, the server must not require access to the decrypted
    ```conf
    # replicaserver1
 
-   [backupool/replicated/workstation1]
+   [backuppool/replicated-push/workstation1]
      use_template = push_received
      recursive = yes
 
@@ -195,8 +195,8 @@ If source pool is encrypted, the server must not require access to the decrypted
    ```bash
    # admin@replicaserver1
 
-   zfs get keystatus -r backuppool/replicated | grep encrypted
-   sudo zfs load-key backuppool/replicated/workstation1/encrypted
+   zfs get keystatus -r backuppool/replicated-push | grep encrypted
+   sudo zfs load-key backuppool/replicated-push/workstation1/encrypted
    ```
 
 2. Initiate replication, preferably using a terminal multiplexer like `tmux` (all commands are executed as `zfs-push-sender@workstation1`).
@@ -204,13 +204,13 @@ If source pool is encrypted, the server must not require access to the decrypted
    - For encrypted `homepool`: recursive replication of all already existing snapshots, using `raw` mode and `bookmark`, without using `hold`:
 
       ```bash
-      syncoid --sendoptions=w --no-privilege-elevation --recursive --no-sync-snap --no-rollback --create-bookmark --sshkey ~/.ssh/replicaserver1 homepool zfs-push-receiver@replicaserver1:backuppool/replicated/workstation1/raw/homepool
+      syncoid --sendoptions=w --no-privilege-elevation --recursive --no-sync-snap --no-rollback --create-bookmark --sshkey ~/.ssh/replicaserver1 homepool zfs-push-receiver@replicaserver1:backuppool/replicated-push/workstation1/raw/homepool
       ```
 
    - For server-side encryption: recursive replication of all already existing snapshots, using `bookmark`, without using `hold`:
 
       ```bash
-      syncoid --no-privilege-elevation --recursive --no-sync-snap --no-rollback --create-bookmark --sshkey ~/.ssh/replicaserver1 homepool zfs-push-receiver@replicaserver1:backuppool/replicated/workstation1/raw/homepool
+      syncoid --no-privilege-elevation --recursive --no-sync-snap --no-rollback --create-bookmark --sshkey ~/.ssh/replicaserver1 homepool zfs-push-receiver@replicaserver1:backuppool/replicated-push/workstation1/raw/homepool
       ```
 
    - To replicate only the newest existing snapshots (without replicating the intermediate snapshots), add the `--no-stream` option.
@@ -221,7 +221,7 @@ If source pool is encrypted, the server must not require access to the decrypted
 
 - Configured permission sets require the `--no-sync-snap` replication option. Without this option, Syncoid creates semi-ephemeral snapshots at runtime, which would otherwise require the dangerous `destroy` permission.
 
-- The initial replication must be performed to a non-existent dataset, for example `backuppool/replicated/workstation1/encrypted/<pool-name>` (`<pool-name>` will be created automatically during the first replication).
+- The initial replication must be performed to a non-existent dataset, for example `backuppool/replicated-push/workstation1/encrypted/<pool-name>` (`<pool-name>` will be created automatically during the first replication).
 
 - Please visit the [Sanoid wiki](https://github.com/jimsalterjrs/sanoid/wiki) for explanations of all Syncoid options and Sanoid configuration.
 
