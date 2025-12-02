@@ -190,11 +190,9 @@ If source pool is encrypted, the replication server must not require access to t
 
 ## 4. Perform the replication
 
-1. If necessary, load the encryption key on the target server:
+1. If necessary, load the encryption key on the target server (executed as admin@replicaserver1):
 
    ```bash
-   # admin@replicaserver1
-
    zfs get keystatus -r backuppool/replicated-push | grep encrypted
    sudo zfs load-key backuppool/replicated-push/workstation1/encrypted
    ```
