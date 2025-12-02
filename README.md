@@ -6,7 +6,7 @@
 
   The container should not be able to access other datasets in the parent pool.
 
-- **[ZFS Replication - SSH Pull Replication with Syncoid](./replication-ssh-push-syncoid)**
+- **[ZFS Replication - SSH Pull Replication with Syncoid](./replication-ssh-pull-syncoid)**
 
   Server contains a ZFS pool that needs to be backed up off-site to replication server.
 
