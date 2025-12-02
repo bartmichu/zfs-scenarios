@@ -199,19 +199,17 @@ If source pool is encrypted, the replication server must not require access to t
 
 2. Initiate replication, preferably using a terminal multiplexer like `tmux` (all commands are executed as `zfs-pull-receiver@replicaserver1`).
 
-   - For encrypted `datapool`: recursive replication of all already existing snapshots, using `raw` mode and `bookmark`, without using `hold`:
+   - For encrypted `datapool`: recursive replication of all already existing snapshots, using `raw`, without using `hold`:
 
       ```bash
       syncoid --sendoptions=w --no-privilege-elevation --recursive --no-sync-snap --no-rollback --create-bookmark --sshkey ~/.ssh/server1 zfs-pull-sender@server1:datapool backuppool/replicated-pull/server1/raw/datapool
       ```
 
-   - For server-side encryption: recursive replication of all already existing snapshots, using `bookmark`, without using `hold`:
+   - For server-side encryption: recursive replication of all already existing snapshots, without using `hold`:
 
       ```bash
       syncoid --no-privilege-elevation --recursive --no-sync-snap --no-rollback --create-bookmark --sshkey ~/.ssh/server1 zfs-pull-sender@server1:datapool backuppool/replicated-pull/server1/encrypted/datapool
       ```
-
-   - To replicate only the newest existing snapshots (without replicating the intermediate snapshots), add the `--no-stream` option.
 
 ## 5. Notes
 
