@@ -210,7 +210,7 @@ If source pool is encrypted, the replication server must not require access to t
    - For server-side encryption: recursive replication of all already existing snapshots, using `bookmark`, without using `hold`:
 
       ```bash
-      syncoid --no-privilege-elevation --recursive --no-sync-snap --no-rollback --create-bookmark --sshkey ~/.ssh/replicaserver1 homepool zfs-push-receiver@replicaserver1:backuppool/replicated-push/workstation1/raw/homepool
+      syncoid --no-privilege-elevation --recursive --no-sync-snap --no-rollback --create-bookmark --sshkey ~/.ssh/replicaserver1 homepool zfs-push-receiver@replicaserver1:backuppool/replicated-push/workstation1/encrypted/homepool
       ```
 
    - To replicate only the newest existing snapshots (without replicating the intermediate snapshots), add the `--no-stream` option.
@@ -222,6 +222,8 @@ If source pool is encrypted, the replication server must not require access to t
 - Configured permission sets require the `--no-sync-snap` replication option. Without this option, Syncoid creates semi-ephemeral snapshots at runtime, which would otherwise require the dangerous `destroy` permission.
 
 - The initial replication must be performed to a non-existent dataset, for example `backuppool/replicated-push/workstation1/encrypted/<pool-name>` (`<pool-name>` will be created automatically during the first replication).
+
+- Local replication can be used to preseed the backup (for example [USB Replication](../replication-usb-syncoid)).
 
 - Please visit the [Sanoid wiki](https://github.com/jimsalterjrs/sanoid/wiki) for explanations of all Syncoid options and Sanoid configuration.
 
