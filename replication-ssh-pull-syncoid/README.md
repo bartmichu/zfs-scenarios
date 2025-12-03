@@ -83,7 +83,7 @@ If source pool is encrypted, the replication server must not require access to t
    ```conf
    # replicaserver1
 
-   [backuppool/replicated-pull/server1]
+   [backuppool/replicated-pull]
      use_template = pull_received
      recursive = yes
 
@@ -149,7 +149,7 @@ If source pool is encrypted, the replication server must not require access to t
 3. Grant minimal required permissions using ZFS permission delegation:
 
    ```bash
-   sudo zfs allow -u zfs-pull-sender bookmark,hold,send,release datapool
+   sudo zfs allow -u zfs-pull-sender send,bookmark,hold,release datapool
    ```
 
 4. Configure Sanoid (for replication with the `--no-sync-snap` option, an additional snapshot creation mechanism is required).
@@ -190,7 +190,7 @@ If source pool is encrypted, the replication server must not require access to t
 
 ## 4. Perform the replication
 
-1. If necessary, load the encryption key on the target server (executed as admin@replicaserver1):
+1. If necessary, load the encryption key on the target server (executed as `admin@replicaserver1`):
 
    ```bash
    zfs get keystatus -r backuppool/replicated-pull | grep encrypted
@@ -199,17 +199,19 @@ If source pool is encrypted, the replication server must not require access to t
 
 2. Initiate replication, preferably using a terminal multiplexer like `tmux` (all commands are executed as `zfs-pull-receiver@replicaserver1`).
 
-   - For encrypted `datapool`: recursive replication of all already existing snapshots, using `raw`, without using `hold`:
+   - For encrypted source data pool: recursive replication of all already existing snapshots, using `raw` mode:
 
       ```bash
-      syncoid --sendoptions=w --no-privilege-elevation --recursive --no-sync-snap --no-rollback --create-bookmark --sshkey ~/.ssh/server1 zfs-pull-sender@server1:datapool backuppool/replicated-pull/server1/raw/datapool
+      syncoid --sendoptions=w --no-privilege-elevation --recursive --no-sync-snap --no-rollback --use-hold --sshkey ~/.ssh/server1 zfs-pull-sender@server1:datapool backuppool/replicated-pull/server1/raw/datapool
       ```
 
-   - For server-side encryption: recursive replication of all already existing snapshots, without using `hold`:
+   - For server-side encryption: recursive replication of all already existing snapshots:
 
       ```bash
-      syncoid --no-privilege-elevation --recursive --no-sync-snap --no-rollback --create-bookmark --sshkey ~/.ssh/server1 zfs-pull-sender@server1:datapool backuppool/replicated-pull/server1/encrypted/datapool
+      syncoid --no-privilege-elevation --recursive --no-sync-snap --no-rollback --use-hold --sshkey ~/.ssh/server1 zfs-pull-sender@server1:datapool backuppool/replicated-pull/server1/encrypted/datapool
       ```
+
+   - To replicate only the newest existing snapshots (without replicating the intermediate snapshots), add the `--no-stream` option. Keep in mind that this will impact the retention policy.
 
 ## 5. Notes
 
@@ -220,6 +222,8 @@ If source pool is encrypted, the replication server must not require access to t
 - The initial replication must be performed to a non-existent dataset, for example `backuppool/replicated-pull/server1/encrypted/<pool-name>` (`<pool-name>` will be created automatically during the first replication).
 
 - Local replication can be used to preseed the backup (for example [USB Replication](../replication-usb-syncoid)).
+
+- Because of a long-standing Syncoid bug, using `--no-sync-snap` with `--no-rollback` doesn’t work reliably with ZFS bookmarks. That’s why I’m opting to use ZFS holds for now.
 
 - Please visit the [Sanoid wiki](https://github.com/jimsalterjrs/sanoid/wiki) for explanations of all Syncoid options and Sanoid configuration.
 
