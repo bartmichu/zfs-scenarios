@@ -6,7 +6,7 @@
 
 1. Attach the new disk.
 
-2. Check the name and configuration of the existing pool:
+2. Verify the configuration of the existing pool, especially the identifier of the current disk:
 
    ```bash
    zpool status <pool-name>
