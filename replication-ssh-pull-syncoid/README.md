@@ -1,5 +1,7 @@
 # ZFS Replication - SSH Pull Replication with Syncoid
 
+**The scenario:**
+
 **Server contains a ZFS pool that needs to be backed up off-site to replication server.**
 
 The backup should run in pull mode and use minimal privileges on both sides.

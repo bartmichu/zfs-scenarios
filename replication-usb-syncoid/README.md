@@ -1,5 +1,7 @@
 # ZFS Replication - USB Replication with Syncoid
 
+**The scenario:**
+
 **System contains a ZFS pool that needs to be backed up to an encrypted USB drive.**
 
 ## 1. Install required packages

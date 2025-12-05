@@ -1,5 +1,7 @@
 # ZFS Replication - SSH Push Replication with Syncoid
 
+**The scenario:**
+
 **Workstation contains a ZFS pool that needs to be backed up off-site to replication server.**
 
 The backup should run in push mode and use minimal privileges on both sides.
