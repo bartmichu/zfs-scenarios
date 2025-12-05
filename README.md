@@ -10,6 +10,10 @@
 
   The single-disk ZFS pool needs to be converted into a two-disk ZFS mirror.
 
+- **[ZFS Layout - Single Disk or Mirror to Stripe Conversion](./layout-stripe/)**
+
+  The single-disk or two-disk mirrored ZFS pool needs to be converted into a two-disk striped pool without redundancy.
+
 - **[ZFS Replication - SSH Pull Replication with Syncoid](./replication-ssh-pull-syncoid)**
 
   Server contains a ZFS pool that needs to be backed up off-site to replication server.
