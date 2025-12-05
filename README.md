@@ -6,6 +6,10 @@
 
   The container should not be able to access other datasets in the parent pool.
 
+- **[ZFS Layout - Single Disk to Mirror Conversion](./layout-mirror/)**
+
+  The single-disk ZFS pool needs to be converted into a two-disk ZFS mirror.
+
 - **[ZFS Replication - SSH Pull Replication with Syncoid](./replication-ssh-pull-syncoid)**
 
   Server contains a ZFS pool that needs to be backed up off-site to replication server.
