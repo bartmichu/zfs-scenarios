@@ -30,6 +30,10 @@
 
   System contains a ZFS pool that needs to be backed up to an encrypted USB drive.
 
+- **[Scripts](./scripts/)**
+
+  Related utility scripts.
+
 ---
 
 *Your data is your responsibility — please don't blame me if something goes wrong.*
