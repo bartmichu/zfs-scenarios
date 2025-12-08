@@ -21,7 +21,7 @@
 2. Create the target dataset, unique for each host:
 
    ```bash
-   sudo zfs create -p backuppool/replicated/hostname1
+   sudo zfs create -p backuppool/replica/hostname1
    ```
 
 ## 3. Perform the replication
@@ -37,18 +37,18 @@
    Recursive replication using semi-ephemeral snapshots created by Syncoid at runtime. Using `hold`:
   
    ```bash
-   sudo syncoid --recursive --no-stream --use-hold datapool backuppool/replicated/hostname1/datapool
+   sudo syncoid --recursive --no-stream --use-hold datapool backuppool/replica/hostname1/datapool
    ```
 
    Recursive replication of only the the newest existing snapshots (without replicating the intermediate snapshots). Using `bookmark`, without using `hold`:
 
    ```bash
-   sudo syncoid --recursive --no-sync-snap --no-stream --create-bookmark datapool backuppool/replicated/hostname1/datapool
+   sudo syncoid --recursive --no-sync-snap --no-stream --create-bookmark datapool backuppool/replica/hostname1/datapool
    ```
 
 ## 4. Notes
 
-- The initial replication must be performed to a non-existent dataset, for example `backuppool/replicated/hostname1/<pool-name>` (`<pool-name>` will be created automatically during the first replication).
+- The initial replication must be performed to a non-existent dataset, for example `backuppool/replica/hostname1/<pool-name>` (`<pool-name>` will be created automatically during the first replication).
 
 - Please visit the [Sanoid wiki](https://github.com/jimsalterjrs/sanoid/wiki) for explanations of all Syncoid options.
 

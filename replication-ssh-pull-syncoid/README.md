@@ -52,26 +52,26 @@ If source pool is encrypted, the replication server must not require access to t
    Create the parent dataset, unique for each client:
 
    ```bash
-   sudo zfs create -p -o mountpoint=none -o compression=on backuppool/replicated-pull/server1
+   sudo zfs create -p -o mountpoint=none -o compression=on backuppool/pull-received/server1
    ```
 
    Create encrypted dataset for replication without `raw` mode:
 
    ```bash
-   sudo zfs create -o encryption=on -o keyformat=passphrase backuppool/replicated-pull/server1/encrypted
+   sudo zfs create -o encryption=on -o keyformat=passphrase backuppool/pull-received/server1/encrypted
    ```
 
    Create unencrypted dataset for replication in `raw` mode:
 
    ```bash
-   sudo zfs create backuppool/replicated-pull/server1/raw
+   sudo zfs create backuppool/pull-received/server1/raw
    ```
 
 6. Grant required permissions using ZFS permission delegation:
 
    ```bash
-   sudo zfs allow -u zfs-pull-receiver create,mount,receive,hold,release backuppool/replicated-pull/server1/encrypted
-   sudo zfs allow -u zfs-pull-receiver create,mount,receive,hold,release backuppool/replicated-pull/server1/raw
+   sudo zfs allow -u zfs-pull-receiver create,mount,receive,hold,release backuppool/pull-received/server1/encrypted
+   sudo zfs allow -u zfs-pull-receiver create,mount,receive,hold,release backuppool/pull-received/server1/raw
    ```
 
 7. Configure Sanoid to delete old snapshots.
@@ -85,7 +85,7 @@ If source pool is encrypted, the replication server must not require access to t
    ```conf
    # replicaserver1
 
-   [backuppool/replicated-pull]
+   [backuppool/pull-received]
      use_template = pull_received
      recursive = yes
 
@@ -195,8 +195,8 @@ If source pool is encrypted, the replication server must not require access to t
 1. If necessary, load the encryption key on the target server (executed as `admin@replicaserver1`):
 
    ```bash
-   zfs get keystatus -r backuppool/replicated-pull | grep encrypted
-   sudo zfs load-key backuppool/replicated-pull/server1/encrypted
+   zfs get keystatus -r backuppool/pull-received | grep encrypted
+   sudo zfs load-key backuppool/pull-received/server1/encrypted
    ```
 
 2. Initiate replication, preferably using a terminal multiplexer like `tmux` (all commands are executed as `zfs-pull-receiver@replicaserver1`).
@@ -204,13 +204,13 @@ If source pool is encrypted, the replication server must not require access to t
    - For encrypted source data pool: recursive replication of all already existing snapshots, using `raw` mode:
 
       ```bash
-      syncoid --sendoptions=w --no-privilege-elevation --recursive --no-sync-snap --no-rollback --use-hold --sshkey ~/.ssh/server1 zfs-pull-sender@server1:datapool backuppool/replicated-pull/server1/raw/datapool
+      syncoid --sendoptions=w --no-privilege-elevation --recursive --no-sync-snap --no-rollback --use-hold --sshkey ~/.ssh/server1 zfs-pull-sender@server1:datapool backuppool/pull-received/server1/raw/datapool
       ```
 
    - For server-side encryption: recursive replication of all already existing snapshots:
 
       ```bash
-      syncoid --no-privilege-elevation --recursive --no-sync-snap --no-rollback --use-hold --sshkey ~/.ssh/server1 zfs-pull-sender@server1:datapool backuppool/replicated-pull/server1/encrypted/datapool
+      syncoid --no-privilege-elevation --recursive --no-sync-snap --no-rollback --use-hold --sshkey ~/.ssh/server1 zfs-pull-sender@server1:datapool backuppool/pull-received/server1/encrypted/datapool
       ```
 
    - To replicate only the newest existing snapshots (without replicating the intermediate snapshots), add the `--no-stream` option. Keep in mind that this will impact the retention policy.
@@ -221,7 +221,7 @@ If source pool is encrypted, the replication server must not require access to t
 
 - Configured permission sets require the `--no-sync-snap` replication option. Without this option, Syncoid creates semi-ephemeral snapshots at runtime, which would otherwise require the dangerous `destroy` permission.
 
-- The initial replication must be performed to a non-existent dataset, for example `backuppool/replicated-pull/server1/encrypted/<pool-name>` (`<pool-name>` will be created automatically during the first replication).
+- The initial replication must be performed to a non-existent dataset, for example `backuppool/pull-received/server1/encrypted/<pool-name>` (`<pool-name>` will be created automatically during the first replication).
 
 - Local replication can be used to preseed the backup (for example [USB Replication](../replication-usb-syncoid)).
 
