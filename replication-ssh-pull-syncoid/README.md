@@ -85,7 +85,7 @@ If source pool is encrypted, the replication server must not require access to t
    ```conf
    # replicaserver1
 
-   [backuppool/pull-received]
+   [backuppool/pull-received/server1]
      use_template = pull_received
      recursive = yes
 
