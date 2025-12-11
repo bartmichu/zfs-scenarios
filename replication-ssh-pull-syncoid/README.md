@@ -2,13 +2,7 @@
 
 **The scenario:**
 
-**Server contains a ZFS pool that needs to be backed up off-site to replication server.**
-
-The backup should run in pull mode and use minimal privileges on both sides.
-
-The replication server should maintain its own independent retention policy.
-
-If source pool is encrypted, the replication server must not require access to the decrypted data or the server's encryption keys. If it is not encrypted, server-side encryption may be used instead.
+**Server contains a ZFS pool that needs to be backed up off-site to replication server. The backup should run in pull mode and use minimal privileges on both sides. The replication server should maintain its own independent retention policy. If source pool is encrypted, the replication server must not require access to the decrypted data or the server's encryption keys. If it is not encrypted, server-side encryption may be used instead.**
 
 ## 1. Create a dedicated user account on the system with the source data pool (all commands are executed as `admin@server1`)
 
@@ -70,8 +64,8 @@ If source pool is encrypted, the replication server must not require access to t
 6. Grant required permissions using ZFS permission delegation:
 
    ```bash
-   sudo zfs allow -u zfs-pull-receiver create,mount,receive,hold,release backuppool/pull-received/server1/encrypted
-   sudo zfs allow -u zfs-pull-receiver create,mount,receive,hold,release backuppool/pull-received/server1/raw
+   sudo zfs allow -u zfs-pull-receiver create,hold,mount,receive,release backuppool/pull-received/server1/encrypted
+   sudo zfs allow -u zfs-pull-receiver create,hold,mount,receive,release backuppool/pull-received/server1/raw
    ```
 
 7. Configure Sanoid to delete old snapshots.
@@ -85,19 +79,39 @@ If source pool is encrypted, the replication server must not require access to t
    ```conf
    # replicaserver1
 
-   [backuppool/pull-received/server1]
-     use_template = pull_received
+   [backuppool/pull-received/server1/encrypted]
+     process_children_only = yes
      recursive = yes
+     use_template = pull_received
+
+   [backuppool/pull-received/server1/raw]
+     process_children_only = yes
+     recursive = yes
+     use_template = pull_received
 
    [template_pull_received]
      autoprune = yes
      autosnap = no
      daily = 14
+     daily_crit = 36h
+     daily_warn = 25h
      frequent_period = 15
      frequently = 4
+     frequently_crit = 0
+     frequently_warn = 0
      hourly = 48
+     hourly_crit = 24h
+     hourly_warn = 2h
+     monitor = yes
      monthly = 2
+     monthly_crit = 36d
+     monthly_warn = 32d
+     weekly = 4
+     weekly_crit = 12d
+     weekly_warn = 8d
      yearly = 0
+     yearly_crit = 0
+     yearly_warn = 0
    ```
 
    ```bash
@@ -127,15 +141,20 @@ If source pool is encrypted, the replication server must not require access to t
    ```conf
    # server1
 
-   Match User zfs-pull-sender
-     AllowUsers *@<replicaserver1-ip> #replace the IP address
-     AuthenticationMethods publickey
-     PasswordAuthentication no
-     PermitTTY no
-     X11Forwarding no
-     PermitTunnel no
-     GatewayPorts no
-     Banner none
+   [datapool]
+     recursive = yes
+     use_template = standard
+
+   [template_standard]
+     autoprune = yes
+     autosnap = yes
+     daily = 7
+     frequent_period = 15
+     frequently = 4
+     hourly = 24
+     monthly = 1
+     weekly = 2
+     yearly = 0
    ```
 
    ```bash
@@ -151,7 +170,7 @@ If source pool is encrypted, the replication server must not require access to t
 3. Grant minimal required permissions using ZFS permission delegation:
 
    ```bash
-   sudo zfs allow -u zfs-pull-sender send,bookmark,hold,release datapool
+   sudo zfs allow -u zfs-pull-sender bookmark,hold,release,send datapool
    ```
 
 4. Configure Sanoid (for replication with the `--no-sync-snap` option, an additional snapshot creation mechanism is required).
@@ -166,8 +185,8 @@ If source pool is encrypted, the replication server must not require access to t
    # server1
 
    [datapool]
-     use_template = standard
      recursive = yes
+     use_template = standard
 
    [template_standard]
      autoprune = yes
@@ -224,6 +243,8 @@ If source pool is encrypted, the replication server must not require access to t
 - The initial replication must be performed to a non-existent dataset, for example `backuppool/pull-received/server1/encrypted/<pool-name>` (`<pool-name>` will be created automatically during the first replication).
 
 - Local replication can be used to preseed the backup (for example [USB Replication](../replication-usb-syncoid)).
+
+- You should customize the `autosnap`, `autoprune` and `monitor` policies to match your requirements.
 
 - Because of a long-standing Syncoid bug, using `--no-sync-snap` with `--no-rollback` doesn’t work reliably with ZFS bookmarks. That’s why I’m opting to use ZFS holds for now.
 

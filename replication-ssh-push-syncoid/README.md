@@ -2,13 +2,7 @@
 
 **The scenario:**
 
-**Workstation contains a ZFS pool that needs to be backed up off-site to replication server.**
-
-The backup should run in push mode and use minimal privileges on both sides.
-
-The replication server should maintain its own independent retention policy.
-
-If source pool is encrypted, the replication server must not require access to the decrypted data or the workstation's encryption keys. If it is not encrypted, server-side encryption may be used instead.
+**Workstation contains a ZFS pool that needs to be backed up off-site to replication server. The backup should run in push mode and use minimal privileges on both sides. The replication server should maintain its own independent retention policy. If source pool is encrypted, the replication server must not require access to the decrypted data or the workstation's encryption keys. If it is not encrypted, server-side encryption may be used instead.**
 
 ## 1. Create a dedicated user account on the system with the target data pool (all commands are executed as `admin@replicaserver1`)
 
@@ -44,7 +38,7 @@ If source pool is encrypted, the replication server must not require access to t
 4. Grant minimal required permissions using ZFS permission delegation:
 
    ```bash
-   sudo zfs allow -u zfs-push-sender bookmark,hold,send,release rpool/USERDATA
+   sudo zfs allow -u zfs-push-sender bookmark,hold,release,send rpool/USERDATA
    ```
 
 5. Configure Sanoid (for replication with the `--no-sync-snap` option, an additional snapshot creation mechanism is required).
@@ -59,8 +53,8 @@ If source pool is encrypted, the replication server must not require access to t
    # workstation1
 
    [rpool/USERDATA]
-     use_template = standard
      recursive = yes
+     use_template = standard
 
    [template_standard]
      autoprune = yes
@@ -70,6 +64,7 @@ If source pool is encrypted, the replication server must not require access to t
      frequently = 4
      hourly = 24
      monthly = 1
+     weekly = 2
      yearly = 0
    ```
 
@@ -150,8 +145,8 @@ If source pool is encrypted, the replication server must not require access to t
 5. Grant required permissions using ZFS permission delegation:
 
    ```bash
-   sudo zfs allow -u zfs-push-receiver create,mount,receive,hold,release backuppool/push-received/workstation1/encrypted
-   sudo zfs allow -u zfs-push-receiver create,mount,receive,hold,release backuppool/push-received/workstation1/raw
+   sudo zfs allow -u zfs-push-receiver create,hold,mount,receive,release backuppool/push-received/workstation1/encrypted
+   sudo zfs allow -u zfs-push-receiver create,hold,mount,receive,release backuppool/push-received/workstation1/raw
    ```
 
 6. Configure Sanoid to delete old snapshots.
@@ -165,19 +160,39 @@ If source pool is encrypted, the replication server must not require access to t
    ```conf
    # replicaserver1
 
-   [backuppool/push-received/workstation1]
-     use_template = push_received
+   [backuppool/push-received/workstation1/encrypted]
+     process_children_only = yes
      recursive = yes
+     use_template = push_received
+
+   [backuppool/push-received/workstation1/raw]
+     process_children_only = yes
+     recursive = yes
+     use_template = push_received
 
    [template_push_received]
      autoprune = yes
      autosnap = no
      daily = 14
+     daily_crit = 36h
+     daily_warn = 25h
      frequent_period = 15
      frequently = 4
+     frequently_crit = 0
+     frequently_warn = 0
      hourly = 48
+     hourly_crit = 24h
+     hourly_warn = 2h
+     monitor = yes
      monthly = 2
+     monthly_crit = 36d
+     monthly_warn = 32d
+     weekly = 4
+     weekly_crit = 12d
+     weekly_warn = 8d
      yearly = 0
+     yearly_crit = 0
+     yearly_warn = 0
    ```
 
    ```bash
@@ -224,6 +239,8 @@ If source pool is encrypted, the replication server must not require access to t
 - The initial replication must be performed to a non-existent dataset, for example `backuppool/push-received/workstation1/encrypted/<pool-name>` (`<pool-name>` will be created automatically during the first replication).
 
 - Local replication can be used to preseed the backup (for example [USB Replication](../replication-usb-syncoid)).
+
+- You should customize the `autosnap`, `autoprune` and `monitor` policies to match your requirements.
 
 - Because of a long-standing Syncoid bug, using `--no-sync-snap` with `--no-rollback` doesn’t work reliably with ZFS bookmarks. That’s why I’m opting to use ZFS holds for now.
 

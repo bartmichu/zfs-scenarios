@@ -2,9 +2,7 @@
 
 **The scenario:**
 
-**LXD container needs the ability to manage a ZFS dataset from LXD host, including creating child datasets, snapshots, and other related operations.**
-
-The container should not be able to access other datasets in the parent pool.
+**LXD container needs the ability to manage a ZFS dataset from LXD host, including creating child datasets, snapshots, and other related operations. The container should not be able to access other datasets in the parent pool.**
 
 ## 1. Prepare the ZFS pool on the LXD host (all commands are executed as admin@lxdhost)
 
