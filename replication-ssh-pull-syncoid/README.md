@@ -139,22 +139,15 @@
    ```
 
    ```conf
-   # server1
-
-   [datapool]
-     recursive = yes
-     use_template = standard
-
-   [template_standard]
-     autoprune = yes
-     autosnap = yes
-     daily = 7
-     frequent_period = 15
-     frequently = 4
-     hourly = 24
-     monthly = 1
-     weekly = 2
-     yearly = 0
+   Match User zfs-pull-sender
+   AllowUsers *@<replicaserver1-ip> #replace the IP address
+   AuthenticationMethods publickey
+   PasswordAuthentication no
+   PermitTTY no
+   X11Forwarding no
+   PermitTunnel no
+   GatewayPorts no
+   Banner none
    ```
 
    ```bash
@@ -196,6 +189,7 @@
      frequently = 4
      hourly = 24
      monthly = 1
+     weekly = 2
      yearly = 0
    ```
 
