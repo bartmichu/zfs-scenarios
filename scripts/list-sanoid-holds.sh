@@ -5,6 +5,6 @@
 
   if [ -n "$HOLDS" ]; then
     echo "Holds for: $SNAPSHOT"
-    echo "$HOLDS" | /usr/bin/awk '{print $2}'
+    printf '%s\n' "$HOLDS" | /usr/bin/awk '{print $2}'
   fi
 done
