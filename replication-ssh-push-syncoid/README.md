@@ -2,7 +2,7 @@
 
 **The scenario:**
 
-**Workstation contains a ZFS pool that needs to be backed up off-site to replication server. The backup should run in push mode and use minimal privileges on both sides. The replication server should maintain its own independent retention policy. If source pool is encrypted, the replication server must not require access to the decrypted data or the workstation's encryption keys. If it is not encrypted, server-side encryption may be used instead.**
+**Workstation contains a ZFS pool that needs to be backed up off-site to replication server. The backup should run in push mode and use minimal privileges on both sides. The replication server should maintain its own independent retention policy. If the source pool is encrypted, the replication server must not require access to the decrypted data or the workstation's encryption keys. If the source pool is not encrypted, server-side encryption can be used instead.**
 
 ## 1. Create a dedicated user account on the system with the target data pool (all commands are executed as `admin@replicaserver1`)
 
@@ -56,6 +56,11 @@
      recursive = yes
      use_template = standard
 
+   [template_ignore]
+     autoprune = no
+     autosnap = no
+     monitor = no
+
    [template_standard]
      autoprune = yes
      autosnap = yes
@@ -78,6 +83,13 @@
    sudo systemctl restart sanoid.service
    ```
 
+   Check the service and timer to make sure there are no errors:
+
+   ```bash
+   sudo systemctl status sanoid.service
+   sudo systemctl status sanoid.timer
+   ```
+
 ## 3. Prepare the system with the target data pool (all commands are executed as `admin@replicaserver1`)
 
 1. Install required packages:
@@ -98,12 +110,12 @@
    Match User zfs-push-receiver
      AllowUsers *@<workstation1-ip> #replace the IP address
      AuthenticationMethods publickey
+     Banner none
+     GatewayPorts no
      PasswordAuthentication no
      PermitTTY no
-     X11Forwarding no
      PermitTunnel no
-     GatewayPorts no
-     Banner none
+     X11Forwarding no
    ```
 
    ```bash
@@ -170,6 +182,11 @@
      recursive = yes
      use_template = replica
 
+   [template_ignore]
+     autoprune = no
+     autosnap = no
+     monitor = no
+
    [template_replica]
      autoprune = yes
      autosnap = no
@@ -203,6 +220,13 @@
 
    ```bash
    sudo systemctl restart sanoid.service
+   ```
+
+   Check the service and timer to make sure there are no errors:
+
+   ```bash
+   sudo systemctl status sanoid.service
+   sudo systemctl status sanoid.timer
    ```
 
 ## 4. Perform the replication
