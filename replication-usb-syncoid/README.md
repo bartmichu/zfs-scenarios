@@ -50,6 +50,8 @@
 
 - The initial replication must be performed to a non-existent dataset, for example `backuppool/replica/hostname1/<pool-name>` (`<pool-name>` will be created automatically during the first replication).
 
+- The above solution does not implement snapshot retention on the target pool.
+
 - Please visit the [Sanoid wiki](https://github.com/jimsalterjrs/sanoid/wiki) for explanations of all Syncoid options.
 
-- This scenario was tested on Ubuntu Server 24.04.
+- This scenario was tested on Ubuntu Desktop 25.10.
