@@ -2,7 +2,7 @@
 
 **The scenario:**
 
-**System contains a ZFS pool that needs to be backed up to an encrypted USB drive.**
+**System contains a ZFS pool that needs to be backed up to an encrypted USB drive. Different retention policies should be applied: the source pool retains a shorter snapshot history to conserve local space, while the target USB pool maintains a longer archival history.**
 
 ## 1. Install required packages
 
@@ -25,7 +25,7 @@
 2. Create the target dataset, unique for each host:
 
    ```bash
-   sudo zfs create -p backuppool/replica/hostname1
+   sudo zfs create backuppool/replica/
    ```
 
 ## 3. Configure zrepl
@@ -73,17 +73,17 @@
              regex: ".*"
          keep_receiver:
            - type: grid
-             grid: 1x1h(keep=all) | 48x1h | 14x1d | 4x7d | 2x30d
+             grid: 1x1h(keep=all) | 48x1h | 14x1d | 4x7d | 3x30d
              regex: "^zrepl_.*"
-           - type: regex
-             negate: true
-             regex: "^zrepl_.*"
+           # - type: regex
+           #   negate: true
+           #   regex: "^zrepl_.*"
        connect:
          type: local
          listener_name: usbbackup_sink
          client_identity: hostname1
-       #send:
-       #  encrypted: true
+       # send:
+       #   encrypted: true
        replication:
          protection:
            initial: guarantee_resumability
@@ -91,7 +91,7 @@
 
      - name: sink-usbbackup
        type: sink
-       root_fs: "backuppool/replica/hostname1"
+       root_fs: "backuppool/replica"
        serve:
          type: local
          listener_name: usbbackup_sink
@@ -132,7 +132,7 @@
 
 ## 5. Notes
 
-- The initial replication must be performed to a non-existent dataset, for example `backuppool/replica/hostname1/<pool-name>` (`<pool-name>` will be created automatically during the first replication).
+- The initial replication must be performed to a non-existent dataset, for example `backuppool/replica/<hostname1>` (`<hostname1>` will be created automatically during the first replication).
 
 - Please visit the [zrepl documentation](https://zrepl.github.io/configuration.html) for explanations of all zrepl options.
 

@@ -24,6 +24,10 @@
 
   System contains a ZFS pool that needs to be backed up to an encrypted USB drive.
 
+- **[ZFS Replication - USB Replication with zrepl](./replication-usb-zrepl)**
+
+  System contains a ZFS pool that needs to be backed up to an encrypted USB drive. Different retention policies should be applied: the source pool retains a shorter snapshot history to conserve local space, while the target USB pool maintains a longer archival history.
+
 - **[Scripts](./scripts/)**
 
   Related utility scripts.
