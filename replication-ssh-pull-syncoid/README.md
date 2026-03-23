@@ -46,16 +46,16 @@
    Create the parent dataset, unique for each client:
 
    ```bash
-   sudo zfs create -p -o mountpoint=none -o compression=on backuppool/pull-received/server1
+   sudo zfs create -p backuppool/pull-received/server1
    ```
 
-   Create encrypted dataset for replication without `raw` mode:
+   Create an encrypted dataset for replication without `raw` mode (used with unencrypted source datasets; the target knows the encryption key):
 
    ```bash
    sudo zfs create -o encryption=on -o keyformat=passphrase backuppool/pull-received/server1/encrypted
    ```
 
-   Create unencrypted dataset for replication in `raw` mode:
+   Create an unencrypted dataset for replication in `raw` mode (used with encrypted source datasets; the target does not know the encryption key):
 
    ```bash
    sudo zfs create backuppool/pull-received/server1/raw

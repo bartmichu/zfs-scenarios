@@ -1,0 +1,85 @@
+jobs:
+  - name: userdata-snap
+    type: snap
+    filesystems:
+      "rpool/USERDATA<": true
+    snapshotting:
+      type: periodic
+      interval: 10m
+      prefix: zrepl_
+    pruning:
+      keep:
+        - type: grid
+          grid: 1x1h(keep=all) | 24x1h | 7x1d | 2x7d | 1x30d
+          regex: "zrepl_.*"
+        - type: regex
+          negate: true
+          regex: "^zrepl_.*"
+
+  - name: userdata-push-usb-raw
+    type: push
+    filesystems:
+      "rpool/USERDATA<": true
+    snapshotting:
+      type: manual
+    pruning:
+      keep_sender:
+        - type: regex
+          regex: ".*"
+      keep_receiver:
+        - type: grid
+          grid: 1x1h(keep=all) | 48x1h | 14x1d | 4x7d | 3x30d
+          regex: "^zrepl_.*"
+    connect:
+      type: local
+      listener_name: userdata_backuppool_raw
+      client_identity: hostname1
+    send:
+      encrypted: true
+    replication:
+      protection:
+        initial: guarantee_resumability
+        incremental: guarantee_incremental
+
+  - name: userdata-push-usb
+    type: push
+    filesystems:
+      "rpool/USERDATA<": true
+    snapshotting:
+      type: manual
+    pruning:
+      keep_sender:
+        - type: regex
+          regex: ".*"
+      keep_receiver:
+        - type: grid
+          grid: 1x1h(keep=all) | 48x1h | 14x1d | 4x7d | 3x30d
+          regex: "^zrepl_.*"
+    connect:
+      type: local
+      listener_name: userdata_backuppool
+      client_identity: hostname1
+    replication:
+      protection:
+        initial: guarantee_resumability
+        incremental: guarantee_incremental
+
+  - name: userdata-sink-usb-raw
+    type: sink
+    root_fs: "backuppool/raw"
+    serve:
+      type: local
+      listener_name: userdata_backuppool_raw
+    recv:
+      placeholder:
+        encryption: off
+
+  - name: userdata-sink-usb
+    type: sink
+    root_fs: "backuppool/encrypted"
+    serve:
+      type: local
+      listener_name: userdata_backuppool
+    recv:
+      placeholder:
+        encryption: inherit

@@ -15,7 +15,7 @@
 2. Create the parent dataset:
 
    ```bash
-   sudo zfs create -p -o mountpoint=none -o compression=on datapool/delegated/lxdtank
+   sudo zfs create -p datapool/delegated/lxdtank
    ```
 
 ## 2. Configure the LXD storage (all commands are executed as admin@lxdhost)

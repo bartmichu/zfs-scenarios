@@ -19,18 +19,26 @@
 1. Create the target data pool:
 
    ```bash
-   sudo zpool create -O mountpoint=none -O compression=on -O encryption=on -O keyformat=passphrase backuppool /dev/disk/by-id/<disk-id>
+   sudo zpool create -O mountpoint=none -O compression=on backuppool /dev/disk/by-id/<disk-id>
    ```
 
-2. Create the target dataset, unique for each host:
+2. Create the dataset structure.
+
+   Create an encrypted dataset for replication without `raw` mode (used with unencrypted source datasets; the target knows the encryption key):
 
    ```bash
-   sudo zfs create backuppool/replica/
+   sudo zfs create -o encryption=on -o keyformat=passphrase backuppool/encrypted
+   ```
+
+   Create an unencrypted dataset for replication in `raw` mode (used with encrypted source datasets; the target does not know the encryption key):
+
+   ```bash
+   sudo zfs create backuppool/raw
    ```
 
 ## 3. Configure zrepl
 
-1. Add the appropriate configuration file:
+1. Edit the main configuration file:
 
    ```bash
    sudo nano /etc/zrepl/zrepl.yml
@@ -42,12 +50,23 @@
        - type: syslog
          format: human
          level: warn
+  
+   include:
+     - /etc/zrepl/userdata.yml
+   ```
 
+2. Edit the included configuration file:
+
+   ```bash
+   sudo nano /etc/zrepl/userdata.yml
+   ```
+
+   ```yaml
    jobs:
-     - name: snapshot-datapool
+     - name: userdata-snap
        type: snap
        filesystems:
-         "datapool<": true
+         "rpool/USERDATA<": true
        snapshotting:
          type: periodic
          interval: 10m
@@ -60,11 +79,10 @@
            - type: regex
              negate: true
              regex: "^zrepl_.*"
-
-     - name: push-usbbackup-datapool
+     - name: userdata-push-usb-raw
        type: push
        filesystems:
-         "datapool<": true
+         "rpool/USERDATA<": true
        snapshotting:
          type: manual
        pruning:
@@ -75,41 +93,74 @@
            - type: grid
              grid: 1x1h(keep=all) | 48x1h | 14x1d | 4x7d | 3x30d
              regex: "^zrepl_.*"
-           # - type: regex
-           #   negate: true
-           #   regex: "^zrepl_.*"
        connect:
          type: local
-         listener_name: usbbackup_sink
+         listener_name: userdata_backuppool_raw
          client_identity: hostname1
-       # send:
-       #   encrypted: true
+       send:
+         encrypted: true
        replication:
          protection:
            initial: guarantee_resumability
            incremental: guarantee_incremental
-
-     - name: sink-usbbackup
+    
+     - name: userdata-push-usb
+       type: push
+       filesystems:
+         "rpool/USERDATA<": true
+       snapshotting:
+         type: manual
+       pruning:
+         keep_sender:
+           - type: regex
+             regex: ".*"
+         keep_receiver:
+           - type: grid
+             grid: 1x1h(keep=all) | 48x1h | 14x1d | 4x7d | 3x30d
+             regex: "^zrepl_.*"
+       connect:
+         type: local
+         listener_name: userdata_backuppool
+         client_identity: hostname1
+       replication:
+         protection:
+           initial: guarantee_resumability
+           incremental: guarantee_incremental
+    
+     - name: userdata-sink-usb-raw
        type: sink
-       root_fs: "backuppool/replica"
+       root_fs: "backuppool/raw"
        serve:
          type: local
-         listener_name: usbbackup_sink
+         listener_name: userdata_backuppool_raw
+       recv:
+         placeholder:
+           encryption: off
+    
+     - name: userdata-sink-usb
+       type: sink
+       root_fs: "backuppool/encrypted"
+       serve:
+         type: local
+         listener_name: userdata_backuppool
+       recv:
+         placeholder:
+           encryption: inherit
    ```
 
-   Verify the configuration file:
+3. Verify the configuration file:
 
    ```bash
    zrepl configcheck
    ```
 
-   Reload zrepl configuration:
+4. Reload zrepl configuration:
 
    ```bash
    sudo systemctl restart zrepl.service
    ```
 
-   Check the service to make sure there are no errors:
+5. Check the service to make sure there are no errors:
 
    ```bash
    sudo systemctl status zrepl.service
@@ -120,19 +171,35 @@
 1. If necessary, import the data pool and load the encryption key:
 
    ```bash
-   sudo zpool import -l backuppool
+   sudo zpool import backuppool
+
+   zfs get keystatus -r backuppool/encrypted
+   sudo zfs load-key backuppool/encrypted
    ```
 
-2. Initiate replication:
+2. Initiate replication.
+
+   For encrypted source data pool:
 
    ```bash
-   sudo zrepl signal wakeup push-usbbackup-datapool
+   sudo zrepl signal wakeup userdata-push-usb-raw
+   sudo zrepl status
+   ```
+
+   For unencrypted source data pool:
+
+   ```bash
+   sudo zrepl signal wakeup userdata-push-usb
    sudo zrepl status
    ```
 
 ## 5. Notes
 
-- The initial replication must be performed to a non-existent dataset, for example `backuppool/replica/<hostname1>` (`<hostname1>` will be created automatically during the first replication).
+- For `raw` replications, ensure you also maintain a backup of the encryption key from the source system.
+
+- The initial replication must be performed to a non-existent dataset, for example `backuppool/raw/<hostname1>` (`<hostname1>` will be created automatically during the first replication).
+
+- You should customize the `grid` policies to match your requirements.
 
 - Please visit the [zrepl documentation](https://zrepl.github.io/configuration.html) for explanations of all zrepl options.
 
