@@ -62,34 +62,44 @@
    ```
 
    ```yaml
+   # Activate this file by including it in the main configuration file
+
    jobs:
      - name: userdata-snap
        type: snap
        filesystems:
          "rpool/USERDATA<": true
        snapshotting:
+         # Create source filesystem ZFS snapshots automatically at a fixed interval
          type: periodic
          interval: 10m
          prefix: zrepl_
        pruning:
          keep:
            - type: grid
+             # Retention policy for source filesystem snapshots created by zrepl
              grid: 1x1h(keep=all) | 24x1h | 7x1d | 2x7d | 1x30d
              regex: "zrepl_.*"
            - type: regex
+             # Preserve all snapshots NOT created by zrepl (e.g. manual snapshots or those from other tools)
              negate: true
              regex: "^zrepl_.*"
+
      - name: userdata-push-usb-raw
+       # This job is for encrypted-send-to-untrusted-rceiver use case
        type: push
        filesystems:
          "rpool/USERDATA<": true
        snapshotting:
+         # Snapshot creation is handled by the snapshot job
          type: manual
        pruning:
          keep_sender:
+           # Source filesystem pruning is handled by the snapshot job
            - type: regex
              regex: ".*"
          keep_receiver:
+           # Retention policy on the target filesystem (keeps only snapshots created by zrepl)
            - type: grid
              grid: 1x1h(keep=all) | 48x1h | 14x1d | 4x7d | 3x30d
              regex: "^zrepl_.*"
@@ -103,18 +113,22 @@
          protection:
            initial: guarantee_resumability
            incremental: guarantee_incremental
-    
+
      - name: userdata-push-usb
+       # This job is for send-plain-encrypt-on-receive use case
        type: push
        filesystems:
          "rpool/USERDATA<": true
        snapshotting:
+         # Snapshot creation is handled by the snapshot job
          type: manual
        pruning:
          keep_sender:
+           # Source filesystem pruning is handled by the snapshot job
            - type: regex
              regex: ".*"
          keep_receiver:
+           # Retention policy on the target filesystem (keeps only snapshots created by zrepl)
            - type: grid
              grid: 1x1h(keep=all) | 48x1h | 14x1d | 4x7d | 3x30d
              regex: "^zrepl_.*"
@@ -126,8 +140,9 @@
          protection:
            initial: guarantee_resumability
            incremental: guarantee_incremental
-    
+
      - name: userdata-sink-usb-raw
+       # This job is for encrypted-send-to-untrusted-rceiver use case
        type: sink
        root_fs: "backuppool/raw"
        serve:
@@ -136,8 +151,9 @@
        recv:
          placeholder:
            encryption: off
-    
+
      - name: userdata-sink-usb
+       # This job is for send-plain-encrypt-on-receive use case
        type: sink
        root_fs: "backuppool/encrypted"
        serve:
