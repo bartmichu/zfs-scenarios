@@ -19,7 +19,7 @@
 1. Create the target data pool:
 
    ```bash
-   sudo zpool create -O mountpoint=none -O compression=on backuppool /dev/disk/by-id/<disk-id>
+   sudo zpool create -O mountpoint=none -O compression=on backuppool1 /dev/disk/by-id/<disk-id>
    ```
 
 2. Create the dataset structure.
@@ -27,13 +27,13 @@
    Create an encrypted dataset for replication without `raw` mode (used with unencrypted source datasets; the target knows the encryption key):
 
    ```bash
-   sudo zfs create -o encryption=on -o keyformat=passphrase backuppool/encrypted
+   sudo zfs create -o encryption=on -o keyformat=passphrase backuppool1/encrypted
    ```
 
    Create an unencrypted dataset for replication in `raw` mode (used with encrypted source datasets; the target does not know the encryption key):
 
    ```bash
-   sudo zfs create backuppool/raw
+   sudo zfs create backuppool1/raw
    ```
 
 ## 3. Configure zrepl
@@ -105,7 +105,7 @@
              regex: "^zrepl_.*"
        connect:
          type: local
-         listener_name: userdata_backuppool_raw
+         listener_name: userdata_backuppool1_raw
          client_identity: hostname1
        send:
          encrypted: true
@@ -134,7 +134,7 @@
              regex: "^zrepl_.*"
        connect:
          type: local
-         listener_name: userdata_backuppool
+         listener_name: userdata_backuppool1
          client_identity: hostname1
        replication:
          protection:
@@ -144,10 +144,10 @@
      - name: userdata-sink-usb-raw
        # This job is for encrypted-send-to-untrusted-rceiver use case
        type: sink
-       root_fs: "backuppool/raw"
+       root_fs: "backuppool1/raw"
        serve:
          type: local
-         listener_name: userdata_backuppool_raw
+         listener_name: userdata_backuppool1_raw
        recv:
          placeholder:
            encryption: off
@@ -155,10 +155,10 @@
      - name: userdata-sink-usb
        # This job is for send-plain-encrypt-on-receive use case
        type: sink
-       root_fs: "backuppool/encrypted"
+       root_fs: "backuppool1/encrypted"
        serve:
          type: local
-         listener_name: userdata_backuppool
+         listener_name: userdata_backuppool1
        recv:
          placeholder:
            encryption: inherit
@@ -187,10 +187,10 @@
 1. If necessary, import the data pool and load the encryption key:
 
    ```bash
-   sudo zpool import backuppool
+   sudo zpool import backuppool1
 
-   zfs get keystatus -r backuppool/encrypted
-   sudo zfs load-key backuppool/encrypted
+   zfs get keystatus -r backuppool1/encrypted
+   sudo zfs load-key backuppool1/encrypted
    ```
 
 2. Initiate replication.
@@ -213,7 +213,7 @@
 
 - For `raw` replications, ensure you also maintain a backup of the encryption key from the source system.
 
-- The initial replication must be performed to a non-existent dataset, for example `backuppool/raw/<hostname1>` (`<hostname1>` will be created automatically during the first replication).
+- The initial replication must be performed to a non-existent dataset, for example `backuppool1/raw/<hostname1>` (`<hostname1>` will be created automatically during the first replication).
 
 - You should customize the `grid` policies to match your requirements.
 

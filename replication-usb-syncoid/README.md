@@ -15,13 +15,13 @@
 1. Create the target data pool:
 
    ```bash
-   sudo zpool create -O mountpoint=none -O compression=on -O encryption=on -O keyformat=passphrase backuppool /dev/disk/by-id/<disk-id>
+   sudo zpool create -O mountpoint=none -O compression=on -O encryption=on -O keyformat=passphrase backuppool1 /dev/disk/by-id/<disk-id>
    ```
 
 2. Create the target dataset, unique for each host:
 
    ```bash
-   sudo zfs create -p backuppool/hostname1
+   sudo zfs create -p backuppool1/hostname1
    ```
 
 ## 3. Perform the replication
@@ -29,7 +29,7 @@
 1. If necessary, import the data pool and load the encryption key:
 
    ```bash
-   sudo zpool import -l backuppool
+   sudo zpool import -l backuppool1
    ```
 
 2. Initiate replication, preferably using a terminal multiplexer like `tmux`.
@@ -37,18 +37,18 @@
    Recursive replication using semi-ephemeral snapshots created by Syncoid at runtime. Using `hold`:
   
    ```bash
-   sudo syncoid --recursive --no-stream --use-hold datapool backuppool/hostname1/datapool
+   sudo syncoid --recursive --no-stream --use-hold datapool backuppool1/hostname1/datapool
    ```
 
    Recursive replication of only the the newest existing snapshots (without replicating the intermediate snapshots). Using `bookmark`, without using `hold`:
 
    ```bash
-   sudo syncoid --recursive --no-sync-snap --no-stream --create-bookmark datapool backuppool/hostname1/datapool
+   sudo syncoid --recursive --no-sync-snap --no-stream --create-bookmark datapool backuppool1/hostname1/datapool
    ```
 
 ## 4. Notes
 
-- The initial replication must be performed to a non-existent dataset, for example `backuppool/hostname1/<pool-name>` (`<pool-name>` will be created automatically during the first replication).
+- The initial replication must be performed to a non-existent dataset, for example `backuppool1/hostname1/<pool-name>` (`<pool-name>` will be created automatically during the first replication).
 
 - The above solution does not implement snapshot retention on the target pool.
 

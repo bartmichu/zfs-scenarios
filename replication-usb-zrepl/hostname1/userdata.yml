@@ -41,7 +41,7 @@ jobs:
           regex: "^zrepl_.*"
     connect:
       type: local
-      listener_name: userdata_backuppool_raw
+      listener_name: userdata_backuppool1_raw
       client_identity: hostname1
     send:
       encrypted: true
@@ -70,7 +70,7 @@ jobs:
           regex: "^zrepl_.*"
     connect:
       type: local
-      listener_name: userdata_backuppool
+      listener_name: userdata_backuppool1
       client_identity: hostname1
     replication:
       protection:
@@ -80,10 +80,10 @@ jobs:
   - name: userdata-sink-usb-raw
     # This job is for encrypted-send-to-untrusted-rceiver use case
     type: sink
-    root_fs: "backuppool/raw"
+    root_fs: "backuppool1/raw"
     serve:
       type: local
-      listener_name: userdata_backuppool_raw
+      listener_name: userdata_backuppool1_raw
     recv:
       placeholder:
         encryption: off
@@ -91,10 +91,10 @@ jobs:
   - name: userdata-sink-usb
     # This job is for send-plain-encrypt-on-receive use case
     type: sink
-    root_fs: "backuppool/encrypted"
+    root_fs: "backuppool1/encrypted"
     serve:
       type: local
-      listener_name: userdata_backuppool
+      listener_name: userdata_backuppool1
     recv:
       placeholder:
         encryption: inherit
