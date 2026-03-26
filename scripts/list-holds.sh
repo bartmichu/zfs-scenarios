@@ -6,7 +6,8 @@
 ## deletion by syncoid or other tool.
 ###########
 
-PATTERN="autosnap"
+PATTERN=""
+# PATTERN="autosnap"
 
 /usr/sbin/zfs list -H -o name -t snapshot | /usr/bin/grep "$PATTERN" | while read -r SNAPSHOT; do
   HOLDS=$(/usr/sbin/zfs holds -H "$SNAPSHOT")
