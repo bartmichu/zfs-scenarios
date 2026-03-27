@@ -20,7 +20,7 @@
 
   Workstation contains a ZFS pool or datasets that needs to be backed up off-site to replication server. The backup should run in push mode and use minimal privileges on both sides. The replication server should maintain its own independent retention policy. If the source pool is encrypted, the replication server must not require access to the decrypted data or the workstation's encryption keys. If the source pool is not encrypted, server-side encryption can be used instead.
 
-- **[ZFS Replication - USB backup with Syncoid](./replication-usb-syncoid)**
+- **[ZFS Replication - USB backup with Sanoid and Syncoid](./replication-usb-syncoid)**
 
   The system contains a ZFS pool or datasets that needs to be backed up to an encrypted USB drive. Sanoid is responsible for creating and pruning snapshots, while Syncoid is responsible for replicating them. Snapshot creation and pruning on source filesystem are handled automatically, while replication and target filesystem snapshot pruning must be initiated manually. Both the encrypted-send-to-untrusted-receiver and send-plain-encrypt-on-receive use cases are supported.
 

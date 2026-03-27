@@ -1,4 +1,4 @@
-# ZFS Replication - USB backup with Syncoid
+# ZFS Replication - USB backup with Sanoid and Syncoid
 
 **The scenario:**
 
@@ -108,6 +108,22 @@
      sudo syncoid --recursive --no-sync-snap --no-stream --create-bookmark rpool/USERDATA backuppool1/encrypted/hostname1/USERDATA
      ```
 
+   Recursive replication using semi-ephemeral snapshots created by Syncoid at runtime, using `hold`:
+
+   - For encrypted-send-to-untrusted-receiver use case:
+  
+     ```bash
+     sudo syncoid --sendoptions=w --recursive --no-stream --use-hold rpool/USERDATA backuppool1/raw/hostname1/USERDATA
+     ```
+
+   - For send-plain-encrypt-on-receive use case:
+
+     ```bash
+     zfs get -H -o value keystatus backuppool1/encrypted | grep -q unavailable && sudo zfs load-key backuppool1/encrypted
+
+     sudo syncoid --recursive --no-stream --use-hold rpool/USERDATA backuppool1/encrypted/hostname1/USERDATA
+     ```
+
 3. After all replications are finished, export the data pool and disconnect the drive:
 
    ```bash
@@ -124,11 +140,7 @@
 
 - The above solution does not implement snapshot retention on the target pool.
 
-- For recursive replication using semi-ephemeral snapshots created by Syncoid at runtime, using `hold`:
-  
-   ```bash
-   sudo syncoid --recursive --no-stream --use-hold rpool/USERDATA backuppool1/encrypted/hostname1/USERDATA
-   ```
+- Udev rules can be implemented to automatically trigger replication.
 
 - `encrypted-send-to-untrusted-receiver` use case: The sender transmits already encrypted data, and the receiver stores it without being able to decrypt it.
 
