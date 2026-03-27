@@ -1,8 +1,8 @@
-# ZFS Replication - USB Replication with zrepl
+# ZFS Replication - USB backup with zrepl
 
 **The scenario:**
 
-**System contains a ZFS pool that needs to be backed up to an encrypted USB drive. Different retention policies should be applied: the source pool retains a shorter snapshot history to conserve local space, while the target USB pool maintains a longer archival history.**
+**The system contains a ZFS pool or datasets that needs to be backed up to an encrypted USB drive. zrepl is responsible for creating, replicating, and pruning snapshots. Snapshot creation and pruning are handled automatically, while replication must be initiated manually. Different retention policies should be applied: the source pool retains a shorter snapshot history to conserve local space, while the target USB pool maintains a longer archival history. Both the encrypted-send-to-untrusted-receiver and send-plain-encrypt-on-receive use cases are supported.**
 
 ## 1. Install required packages
 
@@ -24,13 +24,13 @@
 
 2. Create the dataset structure.
 
-   Create an encrypted dataset for replication without `raw` mode (used with unencrypted source datasets; the target knows the encryption key):
+   Create an encrypted dataset for replication without `raw` mode (send-plain-encrypt-on-receive):
 
    ```bash
    sudo zfs create -o encryption=on -o keyformat=passphrase backuppool1/encrypted
    ```
 
-   Create an unencrypted dataset for replication in `raw` mode (used with encrypted source datasets; the target does not know the encryption key):
+   Create an unencrypted dataset for replication in `raw` mode (encrypted-send-to-untrusted-receiver):
 
    ```bash
    sudo zfs create backuppool1/raw
@@ -184,29 +184,34 @@
 
 ## 4. Perform the replication
 
-1. If necessary, import the data pool and load the encryption key:
+1. If necessary, connect the drive and import the data pool:
 
    ```bash
    sudo zpool import backuppool1
-
-   zfs get keystatus -r backuppool1/encrypted
-   sudo zfs load-key backuppool1/encrypted
    ```
 
 2. Initiate replication.
 
-   For encrypted source data pool:
+   For encrypted-send-to-untrusted-receiver use case:
 
    ```bash
    sudo zrepl signal wakeup userdata-push-usb-raw
    sudo zrepl status
    ```
 
-   For unencrypted source data pool:
+   For send-plain-encrypt-on-receive use case:
 
    ```bash
+   zfs get -H -o value keystatus backuppool1/encrypted | grep -q unavailable && sudo zfs load-key backuppool1/encrypted
+
    sudo zrepl signal wakeup userdata-push-usb
    sudo zrepl status
+   ```
+
+3. After all jobs are finished, export the data pool and disconnect the drive:
+
+   ```bash
+   sudo zpool export backuppool1
    ```
 
 ## 5. Notes
@@ -216,6 +221,12 @@
 - The initial replication must be performed to a non-existent dataset, for example `backuppool1/raw/<hostname1>` (`<hostname1>` will be created automatically during the first replication).
 
 - You should customize the `grid` policies to match your requirements.
+
+- Udev rules can be implemented to automatically trigger replication.
+
+- `encrypted-send-to-untrusted-receiver` use case: The sender transmits already encrypted data, and the receiver stores it without being able to decrypt it.
+
+- `send-plain-encrypt-on-receive` use case: The sender transmits unencrypted data, and the receiver encrypts it when writing to the destination dataset.
 
 - Please visit the [zrepl documentation](https://zrepl.github.io/configuration.html) for explanations of all zrepl options.
 

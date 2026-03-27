@@ -2,7 +2,7 @@
 
 **The scenario:**
 
-**Workstation contains a ZFS pool that needs to be backed up off-site to replication server. The backup should run in push mode and use minimal privileges on both sides. The replication server should maintain its own independent retention policy. If the source pool is encrypted, the replication server must not require access to the decrypted data or the workstation's encryption keys. If the source pool is not encrypted, server-side encryption can be used instead.**
+**Workstation contains a ZFS pool or datasets that needs to be backed up off-site to replication server. The backup should run in push mode and use minimal privileges on both sides. The replication server should maintain its own independent retention policy. If the source pool is encrypted, the replication server must not require access to the decrypted data or the workstation's encryption keys. If the source pool is not encrypted, server-side encryption can be used instead.**
 
 ## 1. Create a dedicated user account on the system with the target data pool (all commands are executed as `admin@replicaserver1`)
 
@@ -43,7 +43,7 @@
 
 5. Configure Sanoid (for replication with the `--no-sync-snap` option, an additional snapshot creation mechanism is required).
 
-   Create the configuration file:
+   Edit the configuration file:
 
    ```bash
    sudo nano /etc/sanoid/sanoid.conf
@@ -163,7 +163,7 @@
 
 6. Configure Sanoid to delete old snapshots.
 
-   Create the configuration file:
+   Edit the configuration file:
 
    ```bash
    sudo nano /etc/sanoid/sanoid.conf
@@ -240,13 +240,13 @@
 
 2. Initiate replication, preferably using a terminal multiplexer like `tmux` (all commands are executed as `zfs-push-sender@workstation1`).
 
-   - For encrypted source data pool: recursive replication of all already existing snapshots, using `raw` mode:
+   - For encrypted-send-to-untrusted-receiver use case: recursive replication of all already existing snapshots, using `raw` mode:
 
       ```bash
       syncoid --sendoptions=w --no-privilege-elevation --recursive --no-sync-snap --no-rollback --use-hold --sshkey ~/.ssh/replicaserver1 rpool/USERDATA zfs-push-receiver@replicaserver1:backuppool1/push-received/workstation1/raw/USERDATA
       ```
 
-   - For server-side encryption: recursive replication of all already existing snapshots:
+   - For send-plain-encrypt-on-receive use case: recursive replication of all already existing snapshots:
 
       ```bash
       syncoid --no-privilege-elevation --recursive --no-sync-snap --no-rollback --use-hold --sshkey ~/.ssh/replicaserver1 rpool/USERDATA zfs-push-receiver@replicaserver1:backuppool1/push-received/workstation1/encrypted/USERDATA
@@ -260,13 +260,17 @@
 
 - Configured permission sets require the `--no-sync-snap` replication option. Without this option, Syncoid creates semi-ephemeral snapshots at runtime, which would otherwise require the dangerous `destroy` permission.
 
-- The initial replication must be performed to a non-existent dataset, for example `backuppool1/push-received/workstation1/encrypted/<pool-name>` (`<pool-name>` will be created automatically during the first replication).
+- The initial replication must be performed to a non-existent dataset, for example `backuppool1/push-received/workstation1/encrypted/<dataset-name>` (`<dataset-name>` will be created automatically during the first replication).
 
 - Local replication can be used to preseed the backup (for example [USB Replication](../replication-usb-syncoid)).
 
 - You should customize the `autosnap`, `autoprune` and `monitor` policies to match your requirements.
 
 - Because of a long-standing Syncoid bug, using `--no-sync-snap` with `--no-rollback` doesn’t work reliably with ZFS bookmarks. That’s why I’m opting to use ZFS holds for now.
+
+- `encrypted-send-to-untrusted-receiver` use case: The sender transmits already encrypted data, and the receiver stores it without being able to decrypt it.
+
+- `send-plain-encrypt-on-receive` use case: The sender transmits unencrypted data, and the receiver encrypts it when writing to the destination dataset.
 
 - Please visit the [Sanoid wiki](https://github.com/jimsalterjrs/sanoid/wiki) for explanations of all Syncoid options and Sanoid configuration.
 

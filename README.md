@@ -14,19 +14,19 @@
 
 - **[ZFS Replication - SSH Pull Replication with Syncoid](./replication-ssh-pull-syncoid)**
 
-  Server contains a ZFS pool that needs to be backed up off-site to replication server. The backup should run in pull mode and use minimal privileges on both sides. The replication server should maintain its own independent retention policy. If the source pool is encrypted, the replication server must not require access to the decrypted data or the server's encryption keys. If the source pool is not encrypted, server-side encryption can be used instead.
+  Server contains a ZFS pool or datasets that needs to be backed up off-site to replication server. The backup should run in pull mode and use minimal privileges on both sides. The replication server should maintain its own independent retention policy. If the source pool is encrypted, the replication server must not require access to the decrypted data or the server's encryption keys. If the source pool is not encrypted, server-side encryption can be used instead.
 
 - **[ZFS Replication - SSH Push Replication with Syncoid](./replication-ssh-push-syncoid)**
 
-  Workstation contains a ZFS pool that needs to be backed up off-site to replication server. The backup should run in push mode and use minimal privileges on both sides. The replication server should maintain its own independent retention policy. If the source pool is encrypted, the replication server must not require access to the decrypted data or the workstation's encryption keys. If the source pool is not encrypted, server-side encryption can be used instead.
+  Workstation contains a ZFS pool or datasets that needs to be backed up off-site to replication server. The backup should run in push mode and use minimal privileges on both sides. The replication server should maintain its own independent retention policy. If the source pool is encrypted, the replication server must not require access to the decrypted data or the workstation's encryption keys. If the source pool is not encrypted, server-side encryption can be used instead.
 
-- **[ZFS Replication - USB Replication with Syncoid](./replication-usb-syncoid)**
+- **[ZFS Replication - USB backup with Syncoid](./replication-usb-syncoid)**
 
-  System contains a ZFS pool that needs to be backed up to an encrypted USB drive.
+  The system contains a ZFS pool or datasets that needs to be backed up to an encrypted USB drive. Sanoid is responsible for creating and pruning snapshots, while Syncoid is responsible for replicating them. Snapshot creation and pruning on source filesystem are handled automatically, while replication and target filesystem snapshot pruning must be initiated manually. Both the encrypted-send-to-untrusted-receiver and send-plain-encrypt-on-receive use cases are supported.
 
-- **[ZFS Replication - USB Replication with zrepl](./replication-usb-zrepl)**
+- **[ZFS Replication - USB backup with zrepl](./replication-usb-zrepl)**
 
-  System contains a ZFS pool that needs to be backed up to an encrypted USB drive. Different retention policies should be applied: the source pool retains a shorter snapshot history to conserve local space, while the target USB pool maintains a longer archival history.
+  The system contains a ZFS pool or datasets that needs to be backed up to an encrypted USB drive. zrepl is responsible for creating, replicating, and pruning snapshots. Snapshot creation and pruning are handled automatically, while replication must be initiated manually. Different retention policies should be applied: the source pool retains a shorter snapshot history to conserve local space, while the target USB pool maintains a longer archival history. Both the encrypted-send-to-untrusted-receiver and send-plain-encrypt-on-receive use cases are supported.
 
 - **[Scripts](./scripts/)**
 
