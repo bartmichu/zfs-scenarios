@@ -2,7 +2,7 @@
 
 **The scenario:**
 
-**Server contains a ZFS pool or datasets that needs to be backed up off-site to replication server. The backup should run in pull mode and use minimal privileges on both sides. The replication server should maintain its own independent retention policy. If the source pool is encrypted, the replication server must not require access to the decrypted data or the server's encryption keys. If the source pool is not encrypted, server-side encryption can be used instead.**
+**Server contains a ZFS pool or datasets that needs to be backed up off-site to backup server. The backup should run in pull mode and use minimal privileges on both sides. The backup server should maintain its own independent retention policy. If the source pool is encrypted, the backup server must not require access to the decrypted data or the server's encryption keys. If the source pool is not encrypted, server-side encryption can be used instead.**
 
 ## 1. Create a dedicated user account on the system with the source data pool (all commands are executed as `admin@server1`)
 
@@ -12,7 +12,7 @@
    sudo adduser zfs-pull-sender
    ```
 
-## 2. Prepare the system with the target data pool (all commands are executed as `admin@replicaserver1`)
+## 2. Prepare the system with the target data pool (all commands are executed as `admin@backupserver1`)
 
 1. Install required packages:
 
@@ -77,7 +77,7 @@
    ```
 
    ```conf
-   # replicaserver1
+   # backupserver1
 
    [backuppool1/pull-received/server1/encrypted]
      process_children_only = yes
@@ -152,7 +152,7 @@
 
    ```conf
    Match User zfs-pull-sender
-     AllowUsers *@<replicaserver1-ip> #replace the IP address
+     AllowUsers *@<backupserver1-ip> #replace the IP address
      AuthenticationMethods publickey
      Banner none
      GatewayPorts no
@@ -229,14 +229,14 @@
 
 ## 4. Perform the replication
 
-1. If necessary, load the encryption key on the target server (executed as `admin@replicaserver1`):
+1. If necessary, load the encryption key on the target server (executed as `admin@backupserver1`):
 
    ```bash
    zfs get keystatus -r backuppool1/pull-received | grep encrypted
    sudo zfs load-key backuppool1/pull-received/server1/encrypted
    ```
 
-2. Initiate replication, preferably using a terminal multiplexer like `tmux` (all commands are executed as `zfs-pull-receiver@replicaserver1`).
+2. Initiate replication, preferably using a terminal multiplexer like `tmux` (all commands are executed as `zfs-pull-receiver@backupserver1`).
 
    - For encrypted-send-to-untrusted-receiver use case: recursive replication of all already existing snapshots, using `raw` mode:
 

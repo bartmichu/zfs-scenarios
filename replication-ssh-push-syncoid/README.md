@@ -2,9 +2,9 @@
 
 **The scenario:**
 
-**Workstation contains a ZFS pool or datasets that needs to be backed up off-site to replication server. The backup should run in push mode and use minimal privileges on both sides. The replication server should maintain its own independent retention policy. If the source pool is encrypted, the replication server must not require access to the decrypted data or the workstation's encryption keys. If the source pool is not encrypted, server-side encryption can be used instead.**
+**Workstation contains a ZFS pool or datasets that needs to be backed up off-site to backup server. The backup should run in push mode and use minimal privileges on both sides. The backup server should maintain its own independent retention policy. If the source pool is encrypted, the backup server must not require access to the decrypted data or the workstation's encryption keys. If the source pool is not encrypted, server-side encryption can be used instead.**
 
-## 1. Create a dedicated user account on the system with the target data pool (all commands are executed as `admin@replicaserver1`)
+## 1. Create a dedicated user account on the system with the target data pool (all commands are executed as `admin@backupserver1`)
 
 1. Create a dedicated user account:
 
@@ -30,8 +30,8 @@
 
    ```bash
    su - zfs-push-sender
-   ssh-keygen -t ed25519 -f ~/.ssh/replicaserver1
-   ssh-copy-id -i ~/.ssh/replicaserver1.pub zfs-push-receiver@replicaserver1
+   ssh-keygen -t ed25519 -f ~/.ssh/backupserver1
+   ssh-copy-id -i ~/.ssh/backupserver1.pub zfs-push-receiver@backupserver1
    exit
    ```
 
@@ -90,7 +90,7 @@
    sudo systemctl status sanoid.timer
    ```
 
-## 3. Prepare the system with the target data pool (all commands are executed as `admin@replicaserver1`)
+## 3. Prepare the system with the target data pool (all commands are executed as `admin@backupserver1`)
 
 1. Install required packages:
 
@@ -105,7 +105,7 @@
    ```
 
    ```conf
-   # replicaserver1
+   # backupserver1
 
    Match User zfs-push-receiver
      AllowUsers *@<workstation1-ip> #replace the IP address
@@ -170,7 +170,7 @@
    ```
 
    ```conf
-   # replicaserver1
+   # backupserver1
 
    [backuppool1/push-received/workstation1/encrypted]
      process_children_only = yes
@@ -231,7 +231,7 @@
 
 ## 4. Perform the replication
 
-1. If necessary, load the encryption key on the target server (executed as `admin@replicaserver1`):
+1. If necessary, load the encryption key on the target server (executed as `admin@backupserver1`):
 
    ```bash
    zfs get keystatus -r backuppool1/push-received | grep encrypted
@@ -243,13 +243,13 @@
    - For encrypted-send-to-untrusted-receiver use case: recursive replication of all already existing snapshots, using `raw` mode:
 
       ```bash
-      syncoid --sendoptions=w --no-privilege-elevation --recursive --no-sync-snap --no-rollback --use-hold --sshkey ~/.ssh/replicaserver1 rpool/USERDATA zfs-push-receiver@replicaserver1:backuppool1/push-received/workstation1/raw/USERDATA
+      syncoid --sendoptions=w --no-privilege-elevation --recursive --no-sync-snap --no-rollback --use-hold --sshkey ~/.ssh/backupserver1 rpool/USERDATA zfs-push-receiver@backupserver1:backuppool1/push-received/workstation1/raw/USERDATA
       ```
 
    - For send-plain-encrypt-on-receive use case: recursive replication of all already existing snapshots:
 
       ```bash
-      syncoid --no-privilege-elevation --recursive --no-sync-snap --no-rollback --use-hold --sshkey ~/.ssh/replicaserver1 rpool/USERDATA zfs-push-receiver@replicaserver1:backuppool1/push-received/workstation1/encrypted/USERDATA
+      syncoid --no-privilege-elevation --recursive --no-sync-snap --no-rollback --use-hold --sshkey ~/.ssh/backupserver1 rpool/USERDATA zfs-push-receiver@backupserver1:backuppool1/push-received/workstation1/encrypted/USERDATA
       ```
 
    - To replicate only the newest existing snapshots (without replicating the intermediate snapshots), add the `--no-stream` option. Keep in mind that this will impact the retention policy.
