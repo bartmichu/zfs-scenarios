@@ -5,8 +5,7 @@
 ## releases any existing holds on them, and then DESTROYS the snapshots.
 ###########
 
-PATTERN=""
-# PATTERN="autosnap"
+PATTERN="autosnap"
 
 /usr/sbin/zfs list -H -o name -t snapshot | /usr/bin/grep "$PATTERN" | while read SNAPSHOT; do
   HOLDS=$(/usr/bin/sudo /usr/sbin/zfs holds -H "$SNAPSHOT")
