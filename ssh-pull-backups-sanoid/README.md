@@ -99,7 +99,7 @@
    Create the parent dataset, unique for each source system (`production1`, `production2` etc.):
 
    ```bash
-   sudo zfs create -p -o canmount=off backuppool1/pull-received/production1
+   sudo zfs create -p backuppool1/pull-received/production1
    ```
 
    Create an unencrypted dataset for encrypted-send-to-untrusted-receiver replication (`raw` mode), used with encrypted source datasets when the sender transmits already encrypted data and the receiver stores it without being able to decrypt it:
@@ -265,7 +265,7 @@
    - For encrypted-send-to-untrusted-receiver use case (`raw` mode):
 
       ```bash
-      syncoid --sendoptions=w --recvoptions='-u -x canmount' --no-privilege-elevation --recursive --no-sync-snap --no-rollback --no-clone-handling --create-bookmark --use-hold --include-snaps='^autosnap_' --sshkey ~/.ssh/production1 zfs-pull-sender@production1:datapool backuppool1/pull-received/production1/raw/datapool
+      syncoid --sendoptions='-w' --recvoptions='-u -x canmount' --no-privilege-elevation --recursive --no-sync-snap --no-rollback --no-clone-handling --create-bookmark --use-hold --include-snaps='^autosnap_' --sshkey ~/.ssh/production1 zfs-pull-sender@production1:datapool backuppool1/pull-received/production1/raw/datapool
       ```
 
    - For send-plain-encrypt-on-receive use case:
