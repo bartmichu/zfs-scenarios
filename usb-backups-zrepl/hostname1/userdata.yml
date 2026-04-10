@@ -35,7 +35,7 @@ jobs:
         - type: regex
           regex: ".*"
       keep_receiver:
-        # Retention policy on the target filesystem (keeps only snapshots created by zrepl)
+        # Retention policy on the destination filesystem (keeps only snapshots created by zrepl)
         - type: grid
           grid: 1x1h(keep=all) | 24x1h | 60x1d | 6x30d
           regex: "^zrepl_.*"
@@ -64,7 +64,7 @@ jobs:
         - type: regex
           regex: ".*"
       keep_receiver:
-        # Retention policy on the target filesystem (keeps only snapshots created by zrepl)
+        # Retention policy on the destination filesystem (keeps only snapshots created by zrepl)
         - type: grid
           grid: 1x1h(keep=all) | 24x1h | 60x1d | 6x30d
           regex: "^zrepl_.*"
