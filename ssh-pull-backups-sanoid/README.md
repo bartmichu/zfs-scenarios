@@ -99,19 +99,19 @@
    Create the parent dataset, unique for each source system (`production1`, `production2` etc.):
 
    ```bash
-   sudo zfs create -o mountpoint=legacy -p backuppool1/pull-received/production1
+   sudo zfs create -o canmount=no -o mountpoint=legacy -p backuppool1/pull-received/production1
    ```
 
    Create an unencrypted dataset for encrypted-send-to-untrusted-receiver replication (`raw` mode), used with encrypted source datasets when the sender transmits already encrypted data and the receiver stores it without being able to decrypt it:
 
    ```bash
-   sudo zfs create backuppool1/pull-received/production1/raw
+   sudo zfs create -o canmount=no backuppool1/pull-received/production1/raw
    ```
 
    Create an encrypted dataset for send-plain-encrypt-on-receive replication, used with encrypted or unencrypted source datasets when the sender transmits unencrypted data and the receiver encrypts it when writing to the destination dataset (the destination has the encryption key):
 
    ```bash
-   sudo zfs create -o encryption=on -o keyformat=passphrase backuppool1/pull-received/production1/encrypted
+   sudo zfs create -o canmount=no -o encryption=on -o keyformat=passphrase backuppool1/pull-received/production1/encrypted
    ```
 
 6. Grant required permissions using ZFS permission delegation:
