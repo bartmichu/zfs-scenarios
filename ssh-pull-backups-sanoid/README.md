@@ -99,7 +99,7 @@
    Create the parent dataset, unique for each source system (`production1`, `production2` etc.):
 
    ```bash
-   sudo zfs create -p backuppool1/pull-received/production1
+   sudo zfs create -o mountpoint=legacy -p backuppool1/pull-received/production1
    ```
 
    Create an unencrypted dataset for encrypted-send-to-untrusted-receiver replication (`raw` mode), used with encrypted source datasets when the sender transmits already encrypted data and the receiver stores it without being able to decrypt it:
