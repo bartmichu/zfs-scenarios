@@ -214,7 +214,7 @@
 
 ## 5. Notes
 
-- Test the restoration procedure.
+- Test your restoration procedure.
 
 - For `raw` replications (encrypted-send-to-untrusted-receiver), ensure that you also maintain a backup of the encryption key from the source system; otherwise, these backups will be worthless.
 

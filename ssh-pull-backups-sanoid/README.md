@@ -274,9 +274,64 @@
       syncoid --recvoptions='-u -x canmount' --no-privilege-elevation --recursive --no-sync-snap --no-rollback --no-clone-handling --create-bookmark --use-hold --include-snaps='^autosnap_' --sshkey ~/.ssh/production1 zfs-pull-sender@production1:datapool backuppool1/pull-received/production1/encrypted/datapool
       ```
 
-## 5. Notes
+## 5. Test backups (all commands are executed as `admin@backup1`)
 
-- Test the restoration procedure.
+1. Schedule monthly pool integrity check. On Ubuntu, the `zfsutils-linux` package provides a cron job responsible for scrubbing pools monthly (`/etc/cron.d/zfsutils-linux`). To run a scrub manually:
+
+   ```bash
+   sudo zpool scrub backuppool1
+   ```
+
+2. Schedule daily snapshot age check.
+
+3. Perform restorability test on regular basis.
+
+   Create a dedicated parent dataset for restore tests:
+
+   ```bash
+   sudo zfs create -o canmount=no -o mountpoint=legacy -p backuppool1/restore-test
+   ```
+
+   Pick a snapshot to test:
+
+   ```bash
+   zfs list -t snapshot -r backuppool1 | grep production1
+   ```
+
+   Load the encryption key:
+
+   ```bash
+   sudo zfs load-key -L file://system.key backuppool1/pull-received/production1/raw/USERDATA/root_3vwzok
+   ```
+
+   Clone the snapshot:
+
+   ```bash
+   sudo zfs clone backuppool1/pull-received/production1/raw/USERDATA/root_3vwzok@autosnap_2026-04-13_08:45:05_frequently backuppool1/restore-test/production1
+   ```
+
+   Mount and verify:
+
+   ```bash
+   sudo mount -t zfs backuppool1/restore-test/production1 /mnt
+   ```
+
+   Unmount and destroy the clone when done:
+
+   ```bash
+   sudo umount /mnt
+   sudo zfs destroy backuppool1/restore-test/production1
+   ```
+
+   Unload the encryption key:
+
+   ```bash
+   sudo zfs unload-key -L backuppool1/pull-received/production1/raw/USERDATA/root_3vwzok
+   ```
+
+## 6. Notes
+
+- Test your restoration procedure.
 
 - For `raw` replications (encrypted-send-to-untrusted-receiver), ensure that you also maintain a backup of the encryption key from the source system; otherwise, these backups will be worthless.
 
@@ -296,7 +351,7 @@
 
 - This scenario was tested on Ubuntu Server 26.04 with Sanoid 2.3.0.
 
-## 6. The missing parts
+## 7. The missing parts
 
 - Implement `ForceCommand` to properly restrict the `zfs-pull-sender` account.
 
