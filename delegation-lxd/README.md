@@ -1,10 +1,16 @@
 # ZFS Dataset Delegation - LXD
 
-**The scenario:**
+**ZFS dataset delegation from an LXD host to a container. The container can manage a specific dataset - including creating child datasets, snapshots, and performing related operations - while remaining restricted from accessing other datasets in the parent pool.**
 
-**LXD container needs the ability to manage a ZFS dataset from LXD host, including creating child datasets, snapshots, and other related operations. The container should not be able to access other datasets in the parent pool.**
+## 1. Prepare the LXD container (all commands are executed as admin@lxdcontainer)
 
-## 1. Prepare the ZFS pool on the LXD host (all commands are executed as admin@lxdhost)
+1. Install required packages:
+
+   ```bash
+   sudo apt install zfsutils-linux
+   ```
+
+## 2. Prepare the ZFS pool on the LXD host (all commands are executed as admin@lxdhost)
 
 1. If necessary, create the data pool:
 
@@ -18,7 +24,7 @@
    sudo zfs create -p datapool/delegated/lxdtank
    ```
 
-## 2. Configure the LXD storage (all commands are executed as admin@lxdhost)
+## 3. Configure the LXD storage (all commands are executed as admin@lxdhost)
 
 1. Create an LXD pool:
 
@@ -29,7 +35,7 @@
    Create LXD volume:
 
    ```bash
-   sudo lxc storage volume create lxdtank containertank
+   sudo lxc storage volume create lxdtank lxdvolume
    ```
 
 2. Stop the container that the volume will be attached to:
@@ -41,13 +47,13 @@
 3. Attach the volume to the container:
 
    ```bash
-   sudo lxc storage volume attach lxdtank containertank lxdcontainer disk-device-1 /srv/containertank
+   sudo lxc storage volume attach lxdtank lxdvolume lxdcontainer disk-device-1 /srv/lxdvolume
    ```
 
 4. Configure volume delegation:
 
    ```bash
-   sudo lxc storage volume set lxdtank custom/containertank zfs.delegate=true
+   sudo lxc storage volume set lxdtank custom/lxdvolume zfs.delegate=true
    ```
 
 5. Start the container to which the volume is attached:
@@ -56,24 +62,19 @@
    sudo lxc start lxdcontainer
    ```
 
-## 3. Prepare the LXD container (all commands are executed as admin@lxdcontainer)
+## 4. Verify that the delegation is configured correctly (all commands are executed as admin@lxdcontainer)
 
-1. Install required packages:
-
-   ```bash
-   sudo apt install zfsutils-linux
-   ```
-
-2. Verify that the delegation is configured correctly:
+1. List pools and datasets:
 
    ```bash
+   zpool list
    zfs list
    ```
 
-## 4. Notes
+## 5. Notes
 
-- You can use the LXD UI as well - it’s well organized, and all sections should be easy to find.
+- You can use the LXD UI as well - it's well organized, and all sections should be easy to find.
 
-- ZFS permission delegation does not work correctly on a volume delegated by LXD.
+- ZFS permission delegation to unprivileged users does not work correctly on a volume delegated by LXD.
 
-- This scenario was tested on Ubuntu Server 24.04 and LXD 5.21/stable.
+- This scenario was tested on Ubuntu Server 26.04 and LXD 5.21/stable.

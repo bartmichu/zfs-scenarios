@@ -14,7 +14,7 @@
 
 - **[ZFS Dataset Delegation - LXD](./delegation-lxd)**
 
-  LXD container needs the ability to manage a ZFS dataset from LXD host, including creating child datasets, snapshots, and other related operations. The container should not be able to access other datasets in the parent pool.
+  ZFS dataset delegation from an LXD host to a container. The container can manage a specific dataset - including creating child datasets, snapshots, and performing related operations - while remaining restricted from accessing other datasets in the parent pool.
 
 - **[ZFS Layout - Single Disk to Mirror Conversion](./layout-mirror/)**
 
