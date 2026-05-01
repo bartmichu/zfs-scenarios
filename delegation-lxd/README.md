@@ -75,6 +75,6 @@
 
 - You can use the LXD UI as well - it's well organized, and all sections should be easy to find.
 
-- ZFS permission delegation to unprivileged users does not work correctly on a volume delegated by LXD.
+- Delegating ZFS permissions for a host-delegated dataset from within the container does not work correctly due to UID mapping.
 
 - This scenario was tested on Ubuntu Server 26.04 and LXD 5.21/stable.

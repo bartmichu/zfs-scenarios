@@ -99,19 +99,19 @@
    Create the parent dataset, unique for each source system (`production1`, `production2` etc.):
 
    ```bash
-   sudo zfs create -o canmount=no -o mountpoint=legacy -p backuppool1/pull-received/production1
+   sudo zfs create -o canmount=off -o mountpoint=legacy -p backuppool1/pull-received/production1
    ```
 
    Create an unencrypted dataset for encrypted-send-to-untrusted-receiver replication (`raw` mode), used with encrypted source datasets when the sender transmits already encrypted data and the receiver stores it without being able to decrypt it:
 
    ```bash
-   sudo zfs create -o canmount=no backuppool1/pull-received/production1/raw
+   sudo zfs create -o canmount=off backuppool1/pull-received/production1/raw
    ```
 
    Create an encrypted dataset for send-plain-encrypt-on-receive replication, used with encrypted or unencrypted source datasets when the sender transmits unencrypted data and the receiver encrypts it when writing to the destination dataset (the destination has the encryption key):
 
    ```bash
-   sudo zfs create -o canmount=no -o encryption=on -o keyformat=passphrase backuppool1/pull-received/production1/encrypted
+   sudo zfs create -o canmount=off -o encryption=on -o keyformat=passphrase backuppool1/pull-received/production1/encrypted
    ```
 
 6. Grant required permissions using ZFS permission delegation:
@@ -239,7 +239,7 @@
 
 3. Grant minimal required permissions using ZFS permission delegation.
 
-   In the case of replication using only encrypted-send-to-untrusted-receiver, and when your ZFS version supports the `send:raw` permission (`raw` mode):
+   In the case of replication using only encrypted-send-to-untrusted-receiver (`raw` mode), and when your ZFS version supports the `send:raw` permission:
 
    ```bash
    sudo zfs allow -u zfs-pull-sender bookmark,hold,release,send:raw datapool
@@ -289,7 +289,7 @@
    Create a dedicated parent dataset for restore tests:
 
    ```bash
-   sudo zfs create -o canmount=no -o mountpoint=legacy -p backuppool1/restore-test
+   sudo zfs create -o canmount=off -o mountpoint=legacy -p backuppool1/restore-test
    ```
 
    Pick a snapshot to test:
