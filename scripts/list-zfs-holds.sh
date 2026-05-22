@@ -1,9 +1,7 @@
 #!/bin/bash
 
 ###########
-## This script lists all ZFS holds on snapshots matching the pattern.
-## It is useful for identifying snapshots that are being prevented from
-## deletion by syncoid or other tool.
+## This script lists all holds on snapshots that match the pattern.
 ###########
 
 PATTERN="autosnap"
