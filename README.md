@@ -1,8 +1,12 @@
 # ZFS Scenarios
 
+- **[Local USB backups (syncoid)](./usb-backups-syncoid)**
+
+  Local ZFS backups. Syncoid creates recursive, semi-ephemeral snapshots at runtime and replicates them to an external drive. Both encrypted-send-to-untrusted-receiver (raw) and send-plain-encrypt-on-receive (non-raw) modes are supported.
+
 - **[Local USB backups (zrepl)](./usb-backups-zrepl)**
 
-  Local ZFS backup to an encrypted USB drive. The source system creates, replicates, and prunes snapshots using zrepl. Snapshot creation and pruning are automated, while replication is triggered manually. The source pool maintains a shorter retention policy to conserve space, while the destination USB backup pool maintains a longer archival retention policy. Both encrypted-send-to-untrusted-receiver and send-plain-encrypt-on-receive modes are supported.
+  Local ZFS backup to an encrypted USB drive. The source system creates, replicates, and prunes snapshots using zrepl. Snapshot creation and pruning are automated, while replication is triggered manually. The source pool maintains a shorter retention policy to conserve space, while the destination USB backup pool maintains a longer archival retention policy. Both encrypted-send-to-untrusted-receiver (raw) and send-plain-encrypt-on-receive (non-raw) modes are supported.
 
 - **[Off-site SSH pull backups (Sanoid + Syncoid)](./ssh-pull-backups-sanoid)**
 

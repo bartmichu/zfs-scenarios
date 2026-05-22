@@ -1,6 +1,6 @@
 # Local USB backups (zrepl)
 
-**Local ZFS backup to an encrypted USB drive. The source system creates, replicates, and prunes snapshots using zrepl. Snapshot creation and pruning are automated, while replication is triggered manually. The source pool maintains a shorter retention policy to conserve space, while the destination USB backup pool maintains a longer archival retention policy. Both encrypted-send-to-untrusted-receiver and send-plain-encrypt-on-receive modes are supported.**
+**Local ZFS backup to an encrypted USB drive. The source system creates, replicates, and prunes snapshots using zrepl. Snapshot creation and pruning are automated, while replication is triggered manually. The source pool maintains a shorter retention policy to conserve space, while the destination USB backup pool maintains a longer archival retention policy. Both encrypted-send-to-untrusted-receiver (raw) and send-plain-encrypt-on-receive (non-raw) modes are supported.**
 
 ## 1. Install required packages
 
@@ -22,7 +22,7 @@
 
 2. Create the dataset structure.
 
-   Create an unencrypted dataset for encrypted-send-to-untrusted-receiver replication (`raw` mode), used with encrypted source datasets when the sender transmits already encrypted data and the receiver stores it without being able to decrypt it:
+   Create an unencrypted dataset for encrypted-send-to-untrusted-receiver replication (raw mode), used with encrypted source datasets when the sender transmits already encrypted data and the receiver stores it without being able to decrypt it:
 
    ```bash
    sudo zfs create backuppool1/raw
@@ -216,7 +216,7 @@
 
 - Test your restoration procedure.
 
-- For `raw` replications (encrypted-send-to-untrusted-receiver), ensure that you also maintain a backup of the encryption key from the source system; otherwise, these backups will be worthless.
+- For raw replications (encrypted-send-to-untrusted-receiver), ensure that you also maintain a backup of the encryption key from the source system; otherwise, these backups will be worthless.
 
 - The initial replication must be performed to a non-existent dataset, for example `backuppool1/raw/<hostname1>` (`<hostname1>` will be created automatically during the first replication).
 

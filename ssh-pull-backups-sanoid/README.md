@@ -102,7 +102,7 @@
    sudo zfs create -o canmount=off -o mountpoint=legacy -p backuppool1/pull-received/production1
    ```
 
-   Create an unencrypted dataset for encrypted-send-to-untrusted-receiver replication (`raw` mode), used with encrypted source datasets when the sender transmits already encrypted data and the receiver stores it without being able to decrypt it:
+   Create an unencrypted dataset for encrypted-send-to-untrusted-receiver replication (raw mode), used with encrypted source datasets when the sender transmits already encrypted data and the receiver stores it without being able to decrypt it:
 
    ```bash
    sudo zfs create -o canmount=off backuppool1/pull-received/production1/raw
@@ -239,7 +239,7 @@
 
 3. Grant minimal required permissions using ZFS permission delegation.
 
-   In the case of replication using only encrypted-send-to-untrusted-receiver (`raw` mode), and when your ZFS version supports the `send:raw` permission:
+   In the case of replication using only encrypted-send-to-untrusted-receiver (raw mode), and when your ZFS version supports the `send:raw` permission:
 
    ```bash
    sudo zfs allow -u zfs-pull-sender bookmark,hold,release,send:raw datapool
@@ -262,7 +262,7 @@
 
 2. Initiate replication, preferably using a terminal multiplexer like `tmux` (all commands are executed as `zfs-pull-receiver@backup1`).
 
-   - For encrypted-send-to-untrusted-receiver use case (`raw` mode):
+   - For encrypted-send-to-untrusted-receiver use case (raw mode):
 
       ```bash
       syncoid --sendoptions='-w' --recvoptions='-u -x canmount' --no-privilege-elevation --recursive --no-sync-snap --no-rollback --no-clone-handling --create-bookmark --use-hold --include-snaps='^autosnap_' --sshkey ~/.ssh/production1 zfs-pull-sender@production1:datapool backuppool1/pull-received/production1/raw/datapool
@@ -333,7 +333,7 @@
 
 - Test your restoration procedure.
 
-- For `raw` replications (encrypted-send-to-untrusted-receiver), ensure that you also maintain a backup of the encryption key from the source system; otherwise, these backups will be worthless.
+- For raw replications (encrypted-send-to-untrusted-receiver), ensure that you also maintain a backup of the encryption key from the source system; otherwise, these backups will be worthless.
 
 - The initial replication must be performed to a non-existent dataset, for example `backuppool1/pull-received/production1/encrypted/<dataset-name>` (`<dataset-name>` will be created automatically during the first replication).
 
